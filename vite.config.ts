@@ -4,13 +4,17 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+// The same build serves three places: the web (root), GitHub Pages (a sub-path, via BASE_PATH) and the
+// Electron desktop app (`--mode desktop`), which has no use for a service worker.
+export default defineConfig(({ mode }) => ({
+  base: process.env.BASE_PATH ?? '/',
   plugins: [
     react(),
     tailwindcss(),
     // Installable, and the app shell works offline. Speech and in-browser models are cached
     // separately by transformers.js in the Cache API after their first download.
     VitePWA({
+      disable: mode === 'desktop',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
@@ -20,7 +24,8 @@ export default defineConfig({
         theme_color: '#f3eee4',
         background_color: '#f3eee4',
         display: 'standalone',
-        start_url: '/',
+        start_url: '.',
+        scope: '.',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -50,4 +55,4 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts'],
   },
-})
+}))
