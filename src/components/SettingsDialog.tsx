@@ -86,7 +86,7 @@ function ModelListInput({
   return (
     <div className="space-y-1.5">
       <div className="flex gap-2">
-        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} list={listId} className={inputClass} />
+        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} list={listId} aria-label="Model" className={inputClass} />
         <datalist id={listId}>
           {models.map((m) => (
             <option key={m} value={m} />
@@ -152,7 +152,7 @@ export function SettingsDialog({
           >
             <ModelPicker models={WHISPER_MODELS} value={settings.whisperModel} onChange={(whisperModel) => onSettingsChange({ ...settings, whisperModel })} />
             <Field label="Language" hint="Multilingual Whisper models and live mode use this. Leave empty to auto-detect (Whisper) or use your browser language (live).">
-              <input
+              <input aria-label="Language"
                 value={settings.language}
                 onChange={(e) => onSettingsChange({ ...settings, language: e.target.value })}
                 placeholder="e.g. english, spanish — or en-US for live mode"
@@ -178,7 +178,7 @@ export function SettingsDialog({
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Server URL">
-                <input value={engines.ollama.baseUrl} onChange={(e) => setEngine('ollama', { baseUrl: e.target.value })} className={inputClass} />
+                <input aria-label="Server URL" value={engines.ollama.baseUrl} onChange={(e) => setEngine('ollama', { baseUrl: e.target.value })} className={inputClass} />
               </Field>
               <Field label="Model">
                 <ModelListInput
@@ -206,10 +206,10 @@ export function SettingsDialog({
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Base URL">
-                <input value={engines.openai.baseUrl} onChange={(e) => setEngine('openai', { baseUrl: e.target.value })} className={inputClass} />
+                <input aria-label="Base URL" value={engines.openai.baseUrl} onChange={(e) => setEngine('openai', { baseUrl: e.target.value })} className={inputClass} />
               </Field>
               <Field label="API key" hint="Not needed for local servers.">
-                <input
+                <input aria-label="API key"
                   type="password"
                   value={engines.openai.apiKey}
                   onChange={(e) => setEngine('openai', { apiKey: e.target.value })}
@@ -232,7 +232,7 @@ export function SettingsDialog({
           <Section title="Claude (Anthropic)" description="Best-in-class editing. Bring your own API key from console.anthropic.com.">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="API key">
-                <input
+                <input aria-label="API key"
                   type="password"
                   value={engines.anthropic.apiKey}
                   onChange={(e) => setEngine('anthropic', { apiKey: e.target.value })}
@@ -242,7 +242,7 @@ export function SettingsDialog({
                 />
               </Field>
               <Field label="Model">
-                <select value={engines.anthropic.model} onChange={(e) => setEngine('anthropic', { model: e.target.value })} className={inputClass}>
+                <select aria-label="Model" value={engines.anthropic.model} onChange={(e) => setEngine('anthropic', { model: e.target.value })} className={inputClass}>
                   {CLAUDE_MODELS.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.label}
