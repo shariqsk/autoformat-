@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanSegmentText, downsample, PcmBuffer, quietestCut, rms } from './pcm'
+import { cleanSegmentText, downsample, joinSegments, PcmBuffer, quietestCut, rms } from './pcm'
 
 const tone = (seconds: number, amp: number, rate = 16000) =>
   Float32Array.from({ length: Math.round(seconds * rate) }, (_, i) => amp * Math.sin(i / 5))
@@ -48,5 +48,17 @@ describe('cleanSegmentText', () => {
     expect(cleanSegmentText(' Thank you.')).toBe('')
     expect(cleanSegmentText('[BLANK_AUDIO]')).toBe('')
     expect(cleanSegmentText(' Thank you for reading my blog.')).toBe('Thank you for reading my blog.')
+  })
+})
+
+describe('joinSegments', () => {
+  it('mends sentences split at a segment boundary', () => {
+    expect(joinSegments(['cleans up the likes.', 'and gives me a post.', '', 'Go try it.'])).toBe(
+      'cleans up the likes and gives me a post. Go try it.',
+    )
+  })
+
+  it('keeps ellipses and real sentence ends', () => {
+    expect(joinSegments(['wait...', 'and then.'])).toBe('wait... and then.')
   })
 })

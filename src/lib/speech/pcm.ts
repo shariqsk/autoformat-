@@ -76,3 +76,15 @@ export function cleanSegmentText(text: string): string {
   const t = text.trim()
   return HALLUCINATIONS.test(t) ? '' : t
 }
+
+/**
+ * Join consecutive segment transcripts. Whisper ends every segment with a full stop, so when the
+ * next segment starts in lowercase the cut fell mid-sentence: drop that stray period.
+ */
+export function joinSegments(texts: string[]): string {
+  return texts.filter(Boolean).reduce((acc, next) => {
+    if (!acc) return next
+    if (/^[a-z]/.test(next) && /[^.]\.$/.test(acc)) return `${acc.slice(0, -1)} ${next}`
+    return `${acc} ${next}`
+  }, '')
+}

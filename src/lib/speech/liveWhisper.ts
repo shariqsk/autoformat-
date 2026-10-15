@@ -1,5 +1,5 @@
 import { transcribeInBrowser, type JobCallbacks } from '../ml/client'
-import { cleanSegmentText, PcmBuffer, quietestCut, rms, SAMPLE_RATE, SILENCE_RMS } from './pcm'
+import { cleanSegmentText, joinSegments, PcmBuffer, quietestCut, rms, SAMPLE_RATE, SILENCE_RMS } from './pcm'
 
 const TARGET_SECONDS = 12
 const MIN_FINAL_SECONDS = 0.4
@@ -34,7 +34,7 @@ export class LiveWhisper {
   }
 
   get text() {
-    return this.texts.filter(Boolean).join(' ')
+    return joinSegments(this.texts)
   }
 
   /** Seconds of audio captured but not yet sent for transcription. */
