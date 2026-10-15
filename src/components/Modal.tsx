@@ -40,7 +40,7 @@ export function Modal({
   if (!open) return null
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-3 backdrop-blur-[2px] sm:p-10"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-3 backdrop-blur-[2px] sm:p-10"
       onMouseDown={onClose}
     >
       <div
@@ -50,11 +50,11 @@ export function Modal({
         aria-label={title}
         tabIndex={-1}
         onMouseDown={(e) => e.stopPropagation()}
-        className={cx('w-full animate-rise rounded-[1.25rem] border border-rule bg-sheet shadow-sheet focus:outline-none', width)}
+        className={cx('surface w-full animate-rise shadow-pop focus:outline-none', width)}
       >
         <header className="flex items-start justify-between gap-4 border-b border-rule px-6 pt-5 pb-4">
           <div>
-            {kicker && <p className="small-caps mb-1 text-accent">{kicker}</p>}
+            {kicker && <p className="label mb-1.5 text-accent">{kicker}</p>}
             <h2 className="font-display text-3xl leading-none text-ink">{title}</h2>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close" className="-mr-2 size-8 px-0">

@@ -55,7 +55,7 @@ export function HistoryDrawer({
     <>
       <div
         className={cx(
-          'fixed inset-0 z-40 bg-ink/30 backdrop-blur-[1px] transition-opacity',
+          'fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px] transition-opacity',
           open ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         onClick={onClose}
@@ -64,21 +64,21 @@ export function HistoryDrawer({
         aria-label="Drafts"
         aria-hidden={!open}
         className={cx(
-          'fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-rule bg-sheet shadow-sheet transition-[transform,visibility] duration-300 ease-out',
+          'surface fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col rounded-none border-y-0 border-r-0 shadow-pop transition-[transform,visibility] duration-300 ease-out',
           open ? 'translate-x-0' : 'invisible translate-x-full',
         )}
       >
         <header className="border-b border-rule px-6 pt-5 pb-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="small-caps mb-1 text-accent">The archive</p>
+              <p className="label mb-1.5 text-accent">The archive</p>
               <h2 className="font-display text-3xl leading-none">Drafts</h2>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close drafts" className="-mr-2 size-8 px-0">
               <X className="size-4" />
             </Button>
           </div>
-          <label className="mt-4 flex items-center gap-2 rounded-full border border-rule bg-paper/70 px-3.5 focus-within:border-ink-3">
+          <label className="field mt-4 flex items-center gap-2 rounded-full py-0 focus-within:border-edge">
             <Search className="size-3.5 text-ink-3" />
             <input
               ref={search}
@@ -111,7 +111,7 @@ export function HistoryDrawer({
                   entry.id === activeId ? 'bg-well' : 'hover:bg-paper',
                 )}
               >
-                <span className="mt-0.5 w-12 shrink-0 rounded-md bg-sheet p-1 text-ink-3 ring-1 ring-rule">
+                <span className="mt-0.5 w-12 shrink-0 rounded-md bg-sheet p-1 text-ink-3 ring-1 ring-edge-ctl">
                   <LayoutThumb layout={entry.options.layout} />
                 </span>
                 <span className="min-w-0 flex-1 pr-6">

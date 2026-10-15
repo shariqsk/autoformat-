@@ -108,8 +108,8 @@ function VoiceReport({
   const fixable = report.tells.filter((t) => t.fix !== null).length
 
   return (
-    <div className="grid gap-px overflow-hidden rounded-xl border border-rule bg-rule sm:grid-cols-[1.4fr_1fr_1fr]">
-      <div className="flex items-center gap-3 bg-paper/70 px-4 py-3">
+    <div className="report grid sm:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="report-cell flex items-center gap-3 px-4 py-3">
         <div className="relative">
           <ScoreRing score={report.match.score} />
           <span className="absolute inset-0 grid place-items-center font-mono text-[11px] font-semibold tabular-nums">
@@ -117,7 +117,7 @@ function VoiceReport({
           </span>
         </div>
         <div className="min-w-0">
-          <p className="small-caps text-ink-3">Sounds like you</p>
+          <p className="label text-ink-3">Sounds like you</p>
           <p className="font-display text-xl leading-tight">{report.match.verdict}</p>
           {report.match.newWords.length > 0 && (
             <p className="truncate text-[11px] text-ink-3" title={report.match.newWords.join(', ')}>
@@ -127,8 +127,8 @@ function VoiceReport({
           )}
         </div>
       </div>
-      <div className="bg-paper/70 px-4 py-3">
-        <p className="small-caps text-ink-3">AI tells</p>
+      <div className="report-cell px-4 py-3">
+        <p className="label text-ink-3">AI tells</p>
         <p className="font-display text-xl leading-tight">{report.tells.length === 0 ? 'None found' : `${report.tells.length} flagged`}</p>
         {onUndo ? (
           <button
@@ -150,8 +150,8 @@ function VoiceReport({
           <p className="text-[11px] text-ink-3">{report.tells.length ? 'Highlighted below' : 'Reads human'}</p>
         )}
       </div>
-      <div className="bg-paper/70 px-4 py-3">
-        <p className="small-caps text-ink-3">Reading level</p>
+      <div className="report-cell px-4 py-3">
+        <p className="label text-ink-3">Reading level</p>
         <p className="font-display text-xl leading-tight">{report.read.grade ? `Grade ${report.read.grade}` : '–'}</p>
         <p className="text-[11px] text-ink-3">
           {report.read.label} · ~{report.read.avgSentenceWords} words/sentence
@@ -170,7 +170,7 @@ function ThreadView({ body }: { body: string }) {
         const text = stripMarkdown(post)
         const over = text.length > 280
         return (
-          <li key={i} className="group relative rounded-2xl border border-rule bg-paper/60 p-4 pr-12">
+          <li key={i} className="well group relative p-4 pr-12">
             <p className="font-serif text-[16px] leading-relaxed whitespace-pre-wrap text-ink">{text}</p>
             <p className={cx('mt-2 font-mono text-[11px] tabular-nums', over ? 'text-accent-deep' : 'text-ink-3')}>{text.length}/280</p>
             <Button
@@ -255,7 +255,7 @@ function ChangesView({
 function EmptyPage() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
-      <Feather className="mb-5 size-8 text-rule-strong" strokeWidth={1.25} />
+      <Feather className="mb-5 size-8 text-ink-3" strokeWidth={1.25} />
       <p className="font-display text-4xl leading-tight text-ink">A blank page, waiting.</p>
       <p className="mt-3 max-w-sm text-sm leading-relaxed text-ink-3">
         Talk about anything. When you're done, hit <span className="text-ink-2">Format it</span> and your words show up here: cleaned up,
@@ -348,6 +348,7 @@ export function OutputPanel({
   return (
     <Panel
       number="03"
+      tone={3}
       title="Page"
       className="flex min-h-[40rem] flex-col"
       aside={
@@ -444,7 +445,7 @@ export function OutputPanel({
                   placeholder="Untitled"
                   aria-label="Title"
                   rows={1}
-                  className="field-sizing-content w-full resize-none bg-transparent font-display text-[2.6rem] leading-[1.05] tracking-tight text-ink placeholder:text-rule-strong focus:outline-none"
+                  className="field-sizing-content w-full resize-none bg-transparent font-display text-[2.6rem] leading-[1.05] tracking-tight text-ink placeholder:text-ink-3/50 focus:outline-none"
                 />
                 <textarea
                   value={doc.description}
@@ -452,7 +453,7 @@ export function OutputPanel({
                   placeholder="A one-line description for previews and search"
                   aria-label="Description"
                   rows={1}
-                  className="mt-2 field-sizing-content w-full resize-none bg-transparent font-serif text-lg text-ink-2 italic placeholder:text-rule-strong focus:outline-none"
+                  className="mt-2 field-sizing-content w-full resize-none bg-transparent font-serif text-lg text-ink-2 italic placeholder:text-ink-3/50 focus:outline-none"
                 />
                 {!formatting && (
                   <TitleIdeas transcript={transcript} current={doc.title} onPick={(title) => onDocChange({ ...doc, title })} />
@@ -472,7 +473,7 @@ export function OutputPanel({
             <textarea
               value={doc.body}
               onChange={(e) => onDocChange({ ...doc, body: e.target.value })}
-              className="min-h-[32rem] flex-1 resize-y rounded-xl border border-rule bg-paper/50 p-4 font-mono text-[13px] leading-relaxed text-ink-2 focus:border-ink-3 focus:outline-none"
+              className="field min-h-[32rem] flex-1 resize-y p-4 font-mono text-[13px] leading-relaxed text-ink-2"
               aria-label="Markdown body"
             />
           )}
@@ -488,10 +489,7 @@ export function OutputPanel({
                     type="button"
                     onClick={() => setFormat(f.id)}
                     aria-pressed={format === f.id}
-                    className={cx(
-                      'rounded-xl border px-3 py-2.5 text-left transition-colors',
-                      format === f.id ? 'border-ink bg-paper shadow-lift' : 'border-rule hover:border-rule-strong hover:bg-paper/60',
-                    )}
+                    className="tile px-3 py-2.5 text-left"
                   >
                     <span className="flex items-center justify-between text-[13px] font-medium text-ink">
                       {f.label}
@@ -501,7 +499,7 @@ export function OutputPanel({
                   </button>
                 ))}
               </div>
-              <pre className="max-h-[34rem] flex-1 overflow-auto rounded-xl border border-rule bg-well p-4 font-mono text-[12px] leading-relaxed break-words whitespace-pre-wrap text-ink-2">
+              <pre className="well max-h-[34rem] flex-1 overflow-auto p-4 font-mono text-[12px] leading-relaxed break-words whitespace-pre-wrap text-ink-2">
                 {exported}
               </pre>
             </div>
@@ -517,13 +515,13 @@ function TitleIdeas({ transcript, current, onPick }: { transcript: string; curre
   if (!ideas.length) return null
   return (
     <div className="mt-3 flex flex-wrap items-baseline gap-x-1 gap-y-1 text-[13px]">
-      <span className="small-caps mr-1 text-ink-3">Other titles, in your words</span>
+      <span className="label mr-1 text-ink-3">Other titles, in your words</span>
       {ideas.slice(0, 4).map((t) => (
         <button
           key={t}
           type="button"
           onClick={() => onPick(t)}
-          className="rounded-full px-2 py-0.5 font-serif text-ink-2 italic underline decoration-rule-strong underline-offset-4 hover:bg-well hover:text-ink"
+          className="rounded-full px-2 py-0.5 font-serif text-ink-2 italic underline decoration-edge-ctl underline-offset-4 hover:bg-well hover:text-ink"
         >
           {t}
         </button>
@@ -565,7 +563,7 @@ function TagsInput({ tags, onChange }: { tags: string[]; onChange: (tags: string
       onKeyDown={(e) => e.key === 'Enter' && commit(e.currentTarget.value)}
       placeholder="tags, comma separated"
       aria-label="Tags"
-      className="mt-3 w-full rounded-lg border border-rule bg-paper px-3 py-1.5 font-mono text-xs text-ink focus:border-ink-3 focus:outline-none"
+      className="field mt-3 py-1.5 font-mono text-xs"
     />
   )
 }

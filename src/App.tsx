@@ -1,12 +1,13 @@
-import { AlertCircle, BookOpen, Keyboard, Moon, Settings, Sun, UserRound, X } from 'lucide-react'
+import { AlertCircle, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HistoryDrawer } from './components/HistoryDrawer'
+import { Masthead } from './components/Masthead'
 import { OutputPanel } from './components/OutputPanel'
 import { RecorderPanel, type RecorderControls } from './components/RecorderPanel'
 import { SettingsDialog } from './components/SettingsDialog'
 import { ShortcutsDialog } from './components/ShortcutsDialog'
+import { StyleDialog } from './components/StyleDialog'
 import { StylePanel } from './components/StylePanel'
-import { Button } from './components/ui'
 import { VoiceProfileDialog } from './components/VoiceProfileDialog'
 import { usePersistentState } from './hooks/usePersistentState'
 import { useTheme } from './hooks/useTheme'
@@ -32,14 +33,6 @@ interface Toast {
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
 
-function GithubMark() {
-  return (
-    <svg viewBox="0 0 16 16" className="size-4 fill-current" aria-hidden="true">
-      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-    </svg>
-  )
-}
-
 export default function App() {
   const [settings, setSettings] = usePersistentState('autoformat:settings', DEFAULT_SETTINGS)
   const [engines, setEngines] = usePersistentState('autoformat:engines', DEFAULT_ENGINE_SETTINGS)
@@ -48,7 +41,7 @@ export default function App() {
   const [transcript, setTranscript] = usePersistentState('autoformat:transcript', '')
   const [history, setHistory] = usePersistentState<HistoryEntry[]>('autoformat:history', [])
   const [current, setCurrent] = usePersistentState<HistoryEntry | null>('autoformat:current', null)
-  const { theme, toggle: toggleTheme } = useTheme()
+  const { theme, setTheme, cycle: cycleTheme } = useTheme()
 
   // Drafts from older versions may carry tone ids that no longer exist.
   const options = useMemo(() => ({ ...storedOptions, tone: normalizeToneId(storedOptions.tone) }), [storedOptions])
@@ -56,7 +49,7 @@ export default function App() {
   const [formatting, setFormatting] = useState(false)
   const [loading, setLoading] = useState<LoadProgress | null>(null)
   const [liveDoc, setLiveDoc] = useState<FormattedDoc | null>(null)
-  const [dialog, setDialog] = useState<'settings' | 'voice' | 'shortcuts' | 'drafts' | null>(null)
+  const [dialog, setDialog] = useState<'settings' | 'voice' | 'shortcuts' | 'drafts' | 'style' | null>(null)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [sessionStart] = useState(() => new Date())
   const abortRef = useRef<AbortController | null>(null)
@@ -194,7 +187,7 @@ export default function App() {
         setDialog((d) => (d === 'drafts' ? null : 'drafts'))
       } else if (mod && e.key === '.') {
         e.preventDefault()
-        toggleTheme()
+        cycleTheme()
       } else if (!mod && !e.altKey && !e.repeat && !isTyping(e.target) && !dialog) {
         if (e.key === 'r' || e.key === 'R') recorderRef.current?.toggle()
         else if (e.key === ' ' && recorderRef.current?.pauseResume()) e.preventDefault()
@@ -203,7 +196,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [runFormat, toggleTheme, dialog])
+  }, [runFormat, cycleTheme, dialog])
 
   const exportCtx = useMemo(
     () => ({
@@ -215,65 +208,10 @@ export default function App() {
   )
 
   const closeDialog = useCallback(() => setDialog(null), [])
-  const today = sessionStart.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-  const navButton = 'h-9 gap-2 px-3 text-ink-2'
 
   return (
     <div className="min-h-full">
-      <header className="mx-auto max-w-[1440px] px-4 pt-6 sm:px-8 sm:pt-8">
-        <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0">
-            <p className="small-caps hidden text-ink-3 sm:block">The dictation desk · {today}</p>
-            <h1 className="mt-1 font-display text-[2.75rem] leading-[0.9] tracking-tight whitespace-nowrap text-ink sm:text-[4rem]">
-              Auto<span className="text-accent italic">format</span>
-              <span className="ml-1 inline-block size-2.5 animate-blink rounded-full bg-accent align-top sm:size-3" aria-hidden />
-            </h1>
-          </div>
-          <nav className="flex shrink-0 items-center gap-0.5 pb-1" aria-label="Main">
-            <Button variant="ghost" className={navButton} onClick={() => setDialog('drafts')} title="Drafts (⌘K)">
-              <BookOpen className="size-4" /> <span className="hidden md:inline">Drafts</span>
-              {history.length > 0 && <span className="font-mono text-[11px] text-ink-3 tabular-nums">{history.length}</span>}
-            </Button>
-            <Button variant="ghost" className={navButton} onClick={() => setDialog('voice')} title="Your voice profile">
-              <UserRound className="size-4" /> <span className="hidden md:inline">Your voice</span>
-            </Button>
-            <Button variant="ghost" className={navButton} onClick={() => setDialog('settings')} title="Settings">
-              <Settings className="size-4" /> <span className="hidden md:inline">Settings</span>
-            </Button>
-            <Button variant="ghost" className="size-9 px-0" onClick={toggleTheme} aria-label="Toggle dark mode" title="Light / dark (⌘.)">
-              {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-            </Button>
-            <Button
-              variant="ghost"
-              className="hidden size-9 px-0 sm:inline-flex"
-              onClick={() => setDialog('shortcuts')}
-              aria-label="Keyboard shortcuts"
-              title="Shortcuts (?)"
-            >
-              <Keyboard className="size-4" />
-            </Button>
-            <a
-              href="https://github.com/shariqsk/autoformat-"
-              target="_blank"
-              rel="noreferrer"
-              className="hidden size-9 place-items-center rounded-full text-ink-2 hover:bg-well hover:text-ink sm:grid"
-              aria-label="Source on GitHub"
-            >
-              <GithubMark />
-            </a>
-          </nav>
-        </div>
-        <div className="mt-4 border-t-2 border-ink" />
-        <div className="mt-[3px] border-t border-ink" />
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 py-2.5">
-          <p className="font-serif text-[15px] text-ink-2 italic">Talk the way you talk. Get back writing that still sounds like you.</p>
-          <p className="small-caps flex gap-4 text-ink-3">
-            <span>Private by default</span>
-            <span>Free</span>
-            <span className="hidden sm:inline">Works offline</span>
-          </p>
-        </div>
-      </header>
+      <Masthead theme={theme} draftCount={history.length} onOpen={setDialog} />
 
       <main className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)] gap-6 px-4 pt-4 pb-16 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <div className="space-y-6">
@@ -320,9 +258,9 @@ export default function App() {
       </main>
 
       <footer className="mx-auto max-w-[1440px] px-4 pb-10 sm:px-8">
-        <div className="border-t border-rule pt-4 text-xs leading-relaxed text-ink-3 sm:flex sm:justify-between">
+        <div className="border-t-(length:--bw) border-rule pt-4 text-xs leading-relaxed text-ink-3 sm:flex sm:justify-between">
           <p>Speech by Whisper, on your device. Nothing leaves your browser unless you choose a cloud editor.</p>
-          <p className="font-serif italic">Set in Instrument Serif, Newsreader &amp; Inter Tight.</p>
+          <p>Press ⌘. to change the look.</p>
         </div>
       </footer>
 
@@ -336,6 +274,7 @@ export default function App() {
       />
       <VoiceProfileDialog open={dialog === 'voice'} onClose={closeDialog} profile={profile} onChange={setProfile} />
       <ShortcutsDialog open={dialog === 'shortcuts'} onClose={closeDialog} />
+      <StyleDialog open={dialog === 'style'} onClose={closeDialog} theme={theme} onChange={setTheme} />
       <HistoryDrawer
         open={dialog === 'drafts'}
         onClose={closeDialog}
@@ -353,7 +292,7 @@ export default function App() {
 
       <div className="fixed bottom-5 left-1/2 z-[60] flex w-full max-w-md -translate-x-1/2 flex-col gap-2 px-4" aria-live="assertive">
         {toasts.map((t) => (
-          <div key={t.id} className="flex animate-rise items-start gap-3 rounded-2xl bg-ink p-3.5 pr-3 text-sm text-paper shadow-sheet">
+          <div key={t.id} className="surface flex animate-rise items-start gap-3 p-3.5 pr-3 text-sm text-ink shadow-pop">
             <AlertCircle className="mt-0.5 size-4 shrink-0 text-accent" />
             <p className="flex-1 leading-snug">{t.message}</p>
             <button

@@ -1,16 +1,8 @@
 import { Check } from 'lucide-react'
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
 import { cx } from './classes'
 
 type ButtonVariant = 'ink' | 'accent' | 'outline' | 'ghost' | 'danger'
-
-const VARIANTS: Record<ButtonVariant, string> = {
-  ink: 'bg-ink text-paper hover:bg-ink-2 shadow-lift disabled:bg-ink-3 disabled:shadow-none',
-  accent: 'bg-accent text-white hover:bg-accent-deep shadow-lift disabled:opacity-40 disabled:shadow-none',
-  outline: 'bg-sheet text-ink ring-1 ring-inset ring-rule-strong hover:bg-well disabled:text-ink-3',
-  ghost: 'text-ink-2 hover:bg-well hover:text-ink disabled:text-ink-3',
-  danger: 'text-accent-deep hover:bg-accent-wash',
-}
 
 export function Button({
   variant = 'outline',
@@ -22,12 +14,11 @@ export function Button({
     <button
       type="button"
       className={cx(
-        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full font-medium whitespace-nowrap transition-[background-color,color,box-shadow,transform] active:translate-y-px disabled:cursor-not-allowed disabled:active:translate-y-0',
+        `btn btn-${variant}`,
         size === 'xs' && 'h-7 px-2.5 text-xs',
         size === 'sm' && 'h-8 px-3 text-[13px]',
         size === 'md' && 'h-9 px-4 text-sm',
         size === 'lg' && 'h-12 px-6 text-[15px]',
-        VARIANTS[variant],
         className,
       )}
       {...props}
@@ -35,26 +26,33 @@ export function Button({
   )
 }
 
-/** Section of the desk, headed like a newspaper section: "01 — Talk". */
+/**
+ * A section of the workspace, headed "01 Talk". Each theme styles the heading its own way: a rule
+ * line on the Desk, a tilted sticker in Yap (tinted by `tone`), a readout in Studio.
+ */
 export function Panel({
   number,
   title,
+  tone = 1,
   aside,
   children,
   className,
 }: {
   number: string
   title: string
+  tone?: 1 | 2 | 3 | 4
   aside?: ReactNode
   children: ReactNode
   className?: string
 }) {
   return (
-    <section className={cx('rounded-[1.25rem] border border-rule bg-sheet shadow-sheet', className)}>
-      <header className="flex items-center gap-3 px-5 pt-4 pb-3 sm:px-6">
-        <span className="small-caps text-accent">{number}</span>
-        <h2 className="font-display text-[1.65rem] leading-none text-ink">{title}</h2>
-        <span className="h-px flex-1 bg-rule" aria-hidden />
+    <section className={cx('surface', className)} style={{ '--panel-color': `var(--pop-${tone})` } as CSSProperties}>
+      <header className="panel-head px-5 pt-5 pb-4 sm:px-6">
+        <span className="panel-tag">
+          <span className="panel-num">{number}</span>
+          <h2 className="panel-title">{title}</h2>
+        </span>
+        <span className="panel-rule" aria-hidden />
         {aside}
       </header>
       <div className="px-5 pb-5 sm:px-6 sm:pb-6">{children}</div>
@@ -78,11 +76,7 @@ export function Segmented<T extends string>({
   className?: string
 }) {
   return (
-    <div
-      role="radiogroup"
-      aria-label={label}
-      className={cx('inline-flex rounded-full bg-well p-0.5 ring-1 ring-rule ring-inset', className)}
-    >
+    <div role="radiogroup" aria-label={label} className={cx('seg', className)}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -91,11 +85,7 @@ export function Segmented<T extends string>({
           aria-checked={value === o.value}
           title={o.title}
           onClick={() => onChange(o.value)}
-          className={cx(
-            'rounded-full font-medium whitespace-nowrap transition-all',
-            size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3.5 py-1.5 text-[13px]',
-            value === o.value ? 'bg-sheet text-ink shadow-lift' : 'text-ink-3 hover:text-ink',
-          )}
+          className={cx('seg-opt', size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3.5 py-1.5 text-[13px]')}
         >
           {o.label}
         </button>
@@ -104,20 +94,11 @@ export function Segmented<T extends string>({
   )
 }
 
-/** A checkbox styled as a little stamp-like chip. */
+/** A checkbox styled as a pill. */
 export function CheckChip({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={cx(
-        'inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium ring-1 transition-colors ring-inset',
-        checked ? 'bg-ink text-paper ring-ink' : 'text-ink-2 ring-rule-strong hover:bg-well',
-      )}
-    >
-      <span className={cx('grid size-3.5 place-items-center rounded-full', checked ? 'bg-paper text-ink' : 'ring-1 ring-rule-strong')}>
+    <button type="button" role="checkbox" aria-checked={checked} onClick={() => onChange(!checked)} className="pill">
+      <span className={cx('grid size-3.5 place-items-center rounded-full', checked ? 'bg-on-chip text-chip-on' : 'ring-1 ring-edge-ctl')}>
         {checked && <Check className="size-2.5" strokeWidth={4} />}
       </span>
       {label}
@@ -141,7 +122,7 @@ export function Badge({
     marker: 'bg-marker text-ink',
   }
   return (
-    <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium', tones[tone], className)}>
+    <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold', tones[tone], className)}>
       {children}
     </span>
   )
@@ -149,7 +130,7 @@ export function Badge({
 
 export function ProgressBar({ value }: { value: number | null }) {
   return (
-    <div className="h-1 w-full overflow-hidden rounded-full bg-well">
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-well ring-1 ring-edge-ctl">
       {value === null ? (
         <div className="h-full w-1/3 animate-[indeterminate_1.2s_ease-in-out_infinite] rounded-full bg-accent" />
       ) : (
@@ -164,7 +145,7 @@ export function Field({ label, hint, children, className }: { label: string; hin
     // A group, not a <label>: a label would forward clicks on its caption to the first control
     // inside (e.g. silently selecting the first layout).
     <div role="group" aria-label={label} className={cx('space-y-2', className)}>
-      <span className="small-caps block text-ink-3">{label}</span>
+      <span className="label block text-ink-3">{label}</span>
       <div>{children}</div>
       {hint && <div className="text-xs leading-relaxed text-ink-3">{hint}</div>}
     </div>

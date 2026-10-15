@@ -231,7 +231,7 @@ export function RecorderPanel({
       onDrop={handleDrop}
     >
       {dragging && (
-        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center rounded-[1.25rem] border-2 border-dashed border-accent bg-sheet/90 backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center rounded-panel border-2 border-dashed border-accent bg-sheet/90 backdrop-blur-sm">
           <div className="text-center">
             <p className="font-display text-3xl text-ink">Drop it here</p>
             <p className="mt-1 text-sm text-ink-3">Audio or video gets transcribed on your device. Text files are added as-is.</p>
@@ -240,6 +240,7 @@ export function RecorderPanel({
       )}
       <Panel
         number="01"
+        tone={1}
         title="Talk"
         aside={
           <Segmented
@@ -261,7 +262,7 @@ export function RecorderPanel({
         }
       >
         {/* The deck: waveform, transport and timecode. */}
-        <div className="rounded-2xl bg-well p-4 ring-1 ring-rule ring-inset sm:p-5">
+        <div className="well p-4 sm:p-5">
           <Waveform analyser={recorder.analyser} paused={recorder.state === 'paused'} className="h-16 w-full sm:h-20" />
 
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -271,12 +272,12 @@ export function RecorderPanel({
                 onClick={toggle}
                 disabled={phase === 'finishing' || phase === 'file'}
                 aria-label={recording ? 'Stop recording' : 'Start recording'}
-                className="group relative grid size-16 shrink-0 place-items-center rounded-full bg-sheet shadow-lift ring-1 ring-rule-strong transition-transform hover:scale-[1.04] active:scale-95 disabled:opacity-50"
+                className="rec group relative size-16 shrink-0 disabled:opacity-50"
               >
-                {recording && <span className="absolute inset-0 animate-ping rounded-full bg-accent/20 [animation-duration:2s]" />}
+                {recording && <span className="absolute inset-0 animate-ping rounded-full bg-rec/25 [animation-duration:2s]" />}
                 <span
                   className={cx(
-                    'bg-accent transition-all duration-200',
+                    'rec-dot transition-all duration-200',
                     recording ? 'size-5 rounded-[5px]' : 'size-9 rounded-full group-hover:size-10',
                   )}
                 />
@@ -363,13 +364,13 @@ export function RecorderPanel({
           ) : (
             <span>
               {model.label} · {model.size} · runs on your {device === 'wasm' ? 'CPU' : 'device'}, audio never leaves it ·{' '}
-              <span className="underline decoration-rule-strong underline-offset-2">change</span>
+              <span className="underline decoration-edge-ctl underline-offset-2">change</span>
             </span>
           )}
         </button>
 
         <div className="mt-5 flex items-center gap-3">
-          <span className="small-caps text-ink-3">Transcript</span>
+          <span className="label text-ink-3">Transcript</span>
           <span className="font-mono text-[11px] text-ink-3 tabular-nums">{wordCount(transcript)} words</span>
           <span className="h-px flex-1 bg-rule" aria-hidden />
           {audioUrl && !recording && (
@@ -394,7 +395,7 @@ export function RecorderPanel({
           // Live text replaces the transcript as it arrives, so typing is paused until it's done.
           readOnly={recording || phase !== 'idle'}
           placeholder="Your words land here as you talk. You can also paste, type, or drop in an audio or text file."
-          className={cx(inputClass, 'notepad mt-2 min-h-56 resize-y bg-paper/40 px-4 font-mono text-[13px] text-ink-2')}
+          className={cx(inputClass, 'notepad mt-2 min-h-56 resize-y px-4 font-mono text-[13px] text-ink-2')}
           spellCheck={false}
         />
         {interim && <p className="mt-2 font-mono text-[13px] text-ink-3 italic">{interim}…</p>}

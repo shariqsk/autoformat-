@@ -7,7 +7,7 @@ const SHORTCUTS: [keys: string[], label: string][] = [
   [['⌘', '↵'], 'Format the transcript'],
   [['⌘', '⇧', 'C'], 'Copy the result'],
   [['⌘', 'K'], 'Open drafts'],
-  [['⌘', '.'], 'Toggle light and dark'],
+  [['⌘', '.'], 'Change the look'],
   [['?'], 'Show this list'],
   [['Esc'], 'Close dialogs'],
 ]

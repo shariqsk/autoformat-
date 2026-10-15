@@ -28,15 +28,18 @@ function KeepWords({ words, onChange }: { words: string[]; onChange: (w: string[
     setDraft('')
   }
   return (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-rule bg-paper/70 p-2 focus-within:border-ink-3">
+    <div className="field flex flex-wrap items-center gap-1.5 p-2 focus-within:border-edge">
       {words.map((w) => (
-        <span key={w} className="inline-flex items-center gap-1 rounded-full bg-ink py-1 pr-1 pl-3 text-[13px] text-paper">
+        <span
+          key={w}
+          className="inline-flex items-center gap-1 rounded-full border-(length:--bw) border-edge bg-chip-on py-1 pr-1 pl-3 text-[13px] font-semibold text-on-chip"
+        >
           {w}
           <button
             type="button"
             onClick={() => onChange(words.filter((x) => x !== w))}
             aria-label={`Remove ${w}`}
-            className="rounded-full p-0.5 hover:bg-paper/20"
+            className="rounded-full p-0.5 hover:bg-black/10"
           >
             <X className="size-3" />
           </button>

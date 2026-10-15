@@ -6,7 +6,7 @@ import { CLAUDE_MODELS, type EngineSettings } from '../lib/llm/types'
 import { hasWebGpu } from '../lib/ml/client'
 import { BROWSER_LLMS, WHISPER_MODELS, type ModelOption } from '../lib/ml/models'
 import type { AppSettings } from '../lib/settings'
-import { cx, inputClass } from './classes'
+import { inputClass } from './classes'
 import { Modal } from './Modal'
 import { Badge, Button, Field, Segmented } from './ui'
 
@@ -40,10 +40,7 @@ function ModelPicker({ models, value, onChange }: { models: ModelOption[]; value
           type="button"
           onClick={() => onChange(m.id)}
           aria-pressed={value === m.id}
-          className={cx(
-            'rounded-xl border px-3 py-2.5 text-left transition-colors',
-            value === m.id ? 'border-ink bg-paper shadow-lift' : 'border-rule hover:border-rule-strong hover:bg-paper/60',
-          )}
+          className="tile px-3 py-2.5 text-left"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-medium text-ink">{m.label}</span>

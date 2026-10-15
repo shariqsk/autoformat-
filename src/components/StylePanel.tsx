@@ -44,8 +44,8 @@ function VoiceProof({ transcript, tone, keepWords }: { transcript: string; tone:
   }, [sample, strictness, keepWords])
 
   return (
-    <div className="rounded-xl border border-dashed border-rule-strong bg-paper/50 px-4 py-3">
-      <p className="small-caps mb-1.5 flex items-center gap-1.5 text-ink-3">
+    <div className="rounded-ctl border-2 border-dashed border-edge-ctl bg-paper/50 px-4 py-3">
+      <p className="label mb-1.5 flex items-center gap-1.5 text-ink-3">
         {sample === DEFAULT_SAMPLE ? 'Example' : 'From your transcript'} <ArrowRight className="size-3" /> {label}
       </p>
       <p className="font-serif text-[15px] leading-relaxed text-ink">
@@ -98,7 +98,7 @@ export function StylePanel({
   const toneIndex = TONES.findIndex((t) => t.id === tone.id)
 
   return (
-    <Panel number="02" title="Shape">
+    <Panel number="02" title="Shape" tone={2}>
       <div className="space-y-6">
         <Field label="Layout">
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -111,17 +111,12 @@ export function StylePanel({
                   title={layout.blurb}
                   onClick={() => set('layout', layout.id)}
                   aria-pressed={active}
-                  className={cx(
-                    'group flex flex-col gap-1.5 rounded-xl border p-2 text-left transition-all',
-                    active
-                      ? 'border-ink bg-paper shadow-lift'
-                      : 'border-rule hover:-translate-y-0.5 hover:border-rule-strong hover:bg-paper/60',
-                  )}
+                  className="tile group flex flex-col gap-1.5 p-2 text-left"
                 >
                   <span
                     className={cx(
                       'rounded-lg p-1.5 transition-colors',
-                      active ? 'bg-well text-ink' : 'bg-well/60 text-ink-3 group-hover:text-ink-2',
+                      active ? 'bg-sheet text-ink' : 'bg-well/70 text-ink-3 group-hover:text-ink-2',
                     )}
                   >
                     <LayoutThumb layout={layout.id} className="h-auto w-full" />
@@ -138,7 +133,7 @@ export function StylePanel({
           <div className="relative">
             <div className="absolute top-[13px] right-[12.5%] left-[12.5%] h-0.5 rounded bg-rule" aria-hidden />
             <div
-              className="absolute top-[13px] left-[12.5%] h-0.5 rounded bg-ink transition-all duration-300"
+              className="absolute top-[13px] left-[12.5%] h-0.5 rounded bg-primary transition-all duration-300"
               style={{ width: `${(toneIndex / (TONES.length - 1)) * 75}%` }}
               aria-hidden
             />
@@ -158,13 +153,13 @@ export function StylePanel({
                       className={cx(
                         'grid size-7 place-items-center rounded-full border-2 transition-all',
                         active
-                          ? 'scale-110 border-ink bg-ink'
+                          ? 'scale-110 border-primary bg-primary shadow-lift'
                           : i < toneIndex
-                            ? 'border-ink bg-sheet'
-                            : 'border-rule-strong bg-sheet group-hover:border-ink-3',
+                            ? 'border-primary bg-sheet'
+                            : 'border-edge-ctl bg-sheet group-hover:border-ink-3',
                       )}
                     >
-                      <span className={cx('size-2 rounded-full', active ? 'bg-accent' : 'bg-transparent')} />
+                      <span className={cx('size-2 rounded-full', active ? 'bg-rec' : 'bg-transparent')} />
                     </span>
                     <span
                       className={cx(
@@ -228,16 +223,7 @@ export function StylePanel({
         >
           <div className="flex flex-wrap items-center gap-1.5">
             {ENGINES.map((e) => (
-              <button
-                key={e.id}
-                type="button"
-                onClick={() => onEngineChange(e.id)}
-                aria-pressed={e.id === engine}
-                className={cx(
-                  'inline-flex h-8 items-center gap-2 rounded-full px-3 text-[13px] font-medium ring-1 transition-colors ring-inset',
-                  e.id === engine ? 'bg-ink text-paper ring-ink' : 'text-ink-2 ring-rule-strong hover:bg-well',
-                )}
-              >
+              <button key={e.id} type="button" onClick={() => onEngineChange(e.id)} aria-pressed={e.id === engine} className="pill">
                 <span className={cx('size-1.5 rounded-full', PRIVACY[e.privacy].dot)} />
                 {e.label}
               </button>
@@ -260,7 +246,7 @@ export function StylePanel({
             <Loader2 className="size-4 animate-spin" /> Writing it up… <Square className="ml-2 size-3 fill-current" /> Stop
           </Button>
         ) : (
-          <Button variant="ink" size="lg" className="w-full" disabled={!canFormat} onClick={onFormat}>
+          <Button variant="ink" size="lg" className="cta w-full" disabled={!canFormat} onClick={onFormat}>
             Format it
             <span className="ml-1 flex gap-0.5">
               <Kbd>⌘</Kbd>
