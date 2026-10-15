@@ -3,15 +3,38 @@
 
 import { cleanTranscript } from './cleanup'
 import { toneById } from './styles'
-import { capitalize, extractKeywords, termFrequencies, titleCase, truncate, wordCount } from './text'
+import { capitalize, extractKeywords, isStopword, termFrequencies, titleCase, truncate, wordCount } from './text'
 import type { FormatOptions, FormattedDoc, LayoutId } from './types'
 
 type Paragraphs = string[][]
 
 const joinP = (p: string[]) => p.join(' ')
 
-/** Headline for a chunk of text built from the terms that are most specific to it. */
+/** Most frequent pair of adjacent meaningful words, e.g. "local models". */
+function topBigram(text: string, used: Set<string>): string | null {
+  const counts = new Map<string, number>()
+  for (const sentence of text.toLowerCase().split(/[.!?,;:]+/)) {
+    const ws = sentence.match(/[a-z][a-z'-]*/g) ?? []
+    for (let i = 0; i < ws.length - 1; i++) {
+      const [a, b] = [ws[i], ws[i + 1]]
+      if (a.length < 3 || b.length < 4 || isStopword(a) || isStopword(b) || used.has(`${a} ${b}`)) continue
+      counts.set(`${a} ${b}`, (counts.get(`${a} ${b}`) ?? 0) + 1)
+    }
+  }
+  const best = [...counts.entries()].sort((x, y) => y[1] - x[1])[0]
+  return best ? best[0] : null
+}
+
+/** Section heading: a short opening sentence if there is one, else the chunk's key phrase. */
 function headingFor(chunk: string, corpus: string, used: Set<string>): string {
+  const first = chunk.split(/(?<=[.!?])\s+/)[0] ?? ''
+  const n = wordCount(first)
+  if (n >= 3 && n <= 7 && first.endsWith('.')) return titleCase(first.replace(/\.$/, ''))
+  const bigram = topBigram(chunk, used)
+  if (bigram) {
+    used.add(bigram)
+    return titleCase(bigram)
+  }
   const global = termFrequencies(corpus)
   const local = [...termFrequencies(chunk).entries()]
     .filter(([w]) => !used.has(w))
@@ -68,8 +91,11 @@ function sectioned(paragraphs: Paragraphs, corpus: string, opts: { closing?: str
   const used = new Set<string>()
   const out = [joinP(intro)]
   for (let i = 0; i < rest.length; i += per) {
-    const group = rest.slice(i, i + per)
-    out.push(`## ${headingFor(group.map(joinP).join(' '), corpus, used)}`, ...group.map(joinP))
+    const group = rest.slice(i, i + per).map((p) => [...p])
+    const heading = headingFor(group.map(joinP).join(' '), corpus, used)
+    // A short opening sentence promoted to a heading shouldn't be repeated underneath it.
+    if (group[0].length > 1 && group[0][0].replace(/\.$/, '').toLowerCase() === heading.toLowerCase()) group[0].shift()
+    out.push(`## ${heading}`, ...group.map(joinP))
   }
   if (closing) out.push(`## ${opts.closing}`, joinP(closing))
   return out.join('\n\n')

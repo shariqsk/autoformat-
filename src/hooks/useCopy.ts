@@ -3,8 +3,10 @@ import { useCallback, useState } from 'react'
 export function useCopy(resetMs = 1600) {
   const [copied, setCopied] = useState<string | null>(null)
   const copy = useCallback(
-    async (text: string, key = 'default') => {
-      await navigator.clipboard.writeText(text)
+    /** Copy a string, or run a custom clipboard writer (e.g. for rich HTML). */
+    async (content: string | (() => Promise<void>), key = 'default') => {
+      if (typeof content === 'string') await navigator.clipboard.writeText(content)
+      else await content()
       setCopied(key)
       setTimeout(() => setCopied((c) => (c === key ? null : c)), resetMs)
     },
