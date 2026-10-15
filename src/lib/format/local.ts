@@ -87,6 +87,48 @@ export function deriveTitle(paragraphs: Paragraphs): string {
   return kws.length ? `Thoughts on ${titleCase(kws.join(' and '))}` : 'Untitled'
 }
 
+/**
+ * Alternative titles, all lifted from things the speaker actually said: their stated topic,
+ * a "why I…" / "how to…" phrase, a question they asked, punchy short lines and opening clauses.
+ */
+export function titleCandidates(transcript: string, limit = 5): string[] {
+  const paragraphs = cleanTranscript(transcript, 1)
+  const sentences = paragraphs.flat()
+  if (!sentences.length) return []
+  const freq = termFrequencies(sentences.join(' '))
+  const density = (s: string) => {
+    let score = 0
+    termFrequencies(s).forEach((_, w) => (score += freq.get(w) ?? 0))
+    return score / Math.sqrt(wordCount(s) + 1)
+  }
+  const clean = (s: string) => titleCase(capitalize(s.replace(/[.!]+$/, '').trim()))
+  const out: string[] = [deriveTitle(paragraphs)]
+
+  for (const s of sentences) {
+    const m = s.match(/\b((?:why|how) (?:I|we|you|to)\b[^,.;!?]{6,60})/i)
+    if (m && wordCount(m[1]) <= 10) out.push(clean(m[1]))
+  }
+  const questions = sentences.filter((s) => s.endsWith('?') && wordCount(s) >= 3 && wordCount(s) <= 10)
+  out.push(...questions.slice(0, 2).map(clean))
+  const punchy = sentences.filter((s) => wordCount(s) >= 3 && wordCount(s) <= 9 && !s.endsWith('?')).sort((a, b) => density(b) - density(a))
+  out.push(...punchy.slice(0, 2).map(clean))
+  const clauses = [...sentences]
+    .sort((a, b) => density(b) - density(a))
+    .map(clauseHead)
+    .filter((c): c is string => !!c)
+  out.push(...clauses.slice(0, 2).map(clean))
+
+  const seen = new Set<string>()
+  return out
+    .filter((t) => {
+      const key = t.toLowerCase().replace(/[^a-z0-9]/g, '')
+      if (!key || key === 'untitled' || seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .slice(0, limit)
+}
+
 /** Pick the most representative sentences (keyword density), kept in original order. */
 export function summarize(paragraphs: Paragraphs, count = 2): string {
   const sentences = paragraphs.flat()
@@ -106,21 +148,25 @@ export function summarize(paragraphs: Paragraphs, count = 2): string {
     .join(' ')
 }
 
-function sectioned(paragraphs: Paragraphs, corpus: string, opts: { closing?: string; maxPerSection?: number } = {}): string {
+function sectioned(paragraphs: Paragraphs, corpus: string, { maxPerSection = 2 } = {}): string {
   if (paragraphs.length < 4) return paragraphs.map(joinP).join('\n\n')
   const [intro, ...rest] = paragraphs
-  const closing = opts.closing && rest.length >= 3 ? rest.pop() : undefined
-  const per = opts.maxPerSection ?? 2
+  // The speaker's last paragraph usually wraps things up, so it gets a section of its own.
+  const groups: string[][][] = []
+  const closing = rest.length >= 3 ? rest.pop() : undefined
+  for (let i = 0; i < rest.length; i += maxPerSection) groups.push(rest.slice(i, i + maxPerSection))
+  if (closing) groups.push([closing])
+
   const used = new Set<string>()
   const out = [joinP(intro)]
-  for (let i = 0; i < rest.length; i += per) {
-    const group = rest.slice(i, i + per).map((p) => [...p])
+  for (const original of groups) {
+    const group = original.map((p) => [...p])
+    // Every heading comes from the speaker's own words; nothing like "Wrapping Up" is invented.
     const heading = headingFor(group.map(joinP).join(' '), corpus, used)
     // A short opening sentence promoted to a heading shouldn't be repeated underneath it.
     if (group[0].length > 1 && group[0][0].replace(/\.$/, '').toLowerCase() === heading.toLowerCase()) group[0].shift()
     out.push(`## ${heading}`, ...group.map(joinP))
   }
-  if (closing) out.push(`## ${opts.closing}`, joinP(closing))
   return out.join('\n\n')
 }
 
@@ -232,7 +278,7 @@ function journal(paragraphs: Paragraphs, now: Date): string {
 function renderLayout(layout: LayoutId, paragraphs: Paragraphs, corpus: string, tags: string[], now: Date): string {
   switch (layout) {
     case 'blog':
-      return sectioned(paragraphs, corpus, { closing: 'Wrapping Up' })
+      return sectioned(paragraphs, corpus)
     case 'listicle':
       return listicle(paragraphs, corpus)
     case 'howto':
@@ -240,7 +286,7 @@ function renderLayout(layout: LayoutId, paragraphs: Paragraphs, corpus: string, 
     case 'essay':
       return paragraphs.map(joinP).join('\n\n')
     case 'newsletter':
-      return ['Hey friends,', sectioned(paragraphs, corpus, { closing: 'Before You Go' }), 'Until next time,'].join('\n\n')
+      return ['Hey friends,', sectioned(paragraphs, corpus), 'Until next time,'].join('\n\n')
     case 'qa':
       return qa(paragraphs, corpus)
     case 'thread':

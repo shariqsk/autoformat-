@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clauseHead, deriveTitle, formatLocally } from './local'
+import { clauseHead, deriveTitle, formatLocally, titleCandidates } from './local'
 import { LAYOUTS } from './styles'
 import { DEFAULT_OPTIONS, type FormatOptions } from './types'
 
@@ -97,5 +97,20 @@ describe('clauseHead', () => {
 
   it('gives up on sentences without a short clause', () => {
     expect(clauseHead('I went to the shop to buy some bread for my mum yesterday.')).toBeNull()
+  })
+})
+
+describe('titleCandidates', () => {
+  it('offers distinct titles lifted from the transcript', () => {
+    const titles = titleCandidates(TRANSCRIPT)
+    expect(titles[0]).toBe('Why I Started Using Local AI Models for My Blog')
+    expect(titles).toContain("What's the Catch?")
+    expect(new Set(titles.map((t) => t.toLowerCase())).size).toBe(titles.length)
+    expect(titles.length).toBeGreaterThanOrEqual(3)
+    expect(titles.length).toBeLessThanOrEqual(5)
+  })
+
+  it('returns nothing for an empty transcript', () => {
+    expect(titleCandidates('')).toEqual([])
   })
 })

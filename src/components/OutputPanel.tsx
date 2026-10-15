@@ -1,7 +1,8 @@
 import DOMPurify from 'dompurify'
-import { Check, Copy, Download, Eraser, Feather } from 'lucide-react'
+import { Check, Copy, Download, Eraser, Feather, Square, Undo2, Volume2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { downloadText, useCopy } from '../hooks/useCopy'
+import { useSpeech } from '../hooks/useSpeech'
 import { changes, findAiIsms, fixAiIsms, readability, voiceMatch } from '../lib/analysis/voice'
 import {
   escapeHtml,
@@ -14,6 +15,7 @@ import {
   type ExportContext,
   type ExportFormatId,
 } from '../lib/export/formats'
+import { titleCandidates } from '../lib/format/local'
 import { stripMarkdown, wordCount } from '../lib/format/text'
 import type { FormattedDoc, LayoutId } from '../lib/format/types'
 import type { LoadProgress } from '../lib/ml/protocol'
@@ -68,7 +70,17 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-function VoiceReport({ transcript, doc, onFix }: { transcript: string; doc: FormattedDoc; onFix: () => void }) {
+function VoiceReport({
+  transcript,
+  doc,
+  onFix,
+  onUndo,
+}: {
+  transcript: string
+  doc: FormattedDoc
+  onFix: () => void
+  onUndo: (() => void) | null
+}) {
   const report = useMemo(() => {
     const full = `${doc.title}\n\n${doc.body}`
     return { match: voiceMatch(transcript, full), tells: findAiIsms(doc.body), read: readability(doc.body) }
@@ -98,7 +110,15 @@ function VoiceReport({ transcript, doc, onFix }: { transcript: string; doc: Form
       <div className="bg-paper/70 px-4 py-3">
         <p className="small-caps text-ink-3">AI tells</p>
         <p className="font-display text-xl leading-tight">{report.tells.length === 0 ? 'None found' : `${report.tells.length} flagged`}</p>
-        {fixable > 0 ? (
+        {onUndo ? (
+          <button
+            type="button"
+            onClick={onUndo}
+            className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-ink-2 hover:underline"
+          >
+            <Undo2 className="size-3" /> Undo the fixes
+          </button>
+        ) : fixable > 0 ? (
           <button
             type="button"
             onClick={onFix}
@@ -266,6 +286,16 @@ export function OutputPanel({
   const [view, setView] = useState<View>('read')
   const [format, setFormat] = useState<ExportFormatId>('markdown')
   const { copied, copy } = useCopy()
+  const [beforeFix, setBeforeFix] = useState<FormattedDoc | null>(null)
+  const speech = useSpeech()
+
+  // A new draft (or any edit other than the fix itself) retires the undo.
+  const docId = doc ? `${doc.title}\u0000${doc.body.length}` : ''
+  const [lastDocId, setLastDocId] = useState(docId)
+  if (docId !== lastDocId) {
+    setLastDocId(docId)
+    if (beforeFix && doc?.body !== fixAiIsms(beforeFix.body)) setBeforeFix(null)
+  }
 
   const html = useMemo(
     () => (doc ? DOMPurify.sanitize(toHtmlFragment({ ...doc, title: '', body: formatting ? doc.body : highlightAiIsms(doc.body) })) : ''),
@@ -336,6 +366,18 @@ export function OutputPanel({
               ))}
             </div>
             <div className="ml-auto flex gap-1.5">
+              {speech.supported && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => (speech.speaking ? speech.stop() : speech.speak(toPlainText(doc)))}
+                  disabled={formatting}
+                  title="Hear it read aloud: the quickest way to check it still sounds like you"
+                >
+                  {speech.speaking ? <Square className="size-3 fill-current" /> : <Volume2 className="size-3.5" />}
+                  <span className="hidden sm:inline">{speech.speaking ? 'Stop' : 'Listen'}</span>
+                </Button>
+              )}
               <Button size="sm" onClick={handleCopy} disabled={formatting}>
                 {copied === 'main' ? <Check className="size-3.5 text-olive" /> : <Copy className="size-3.5" />}
                 {copied === 'main' ? 'Copied' : 'Copy'}
@@ -358,7 +400,22 @@ export function OutputPanel({
           )}
 
           {!formatting && view !== 'export' && (
-            <VoiceReport transcript={transcript} doc={doc} onFix={() => onDocChange({ ...doc, body: fixAiIsms(doc.body) })} />
+            <VoiceReport
+              transcript={transcript}
+              doc={doc}
+              onFix={() => {
+                setBeforeFix(doc)
+                onDocChange({ ...doc, body: fixAiIsms(doc.body) })
+              }}
+              onUndo={
+                beforeFix
+                  ? () => {
+                      onDocChange(beforeFix)
+                      setBeforeFix(null)
+                    }
+                  : null
+              }
+            />
           )}
 
           {view === 'read' && (
@@ -380,6 +437,9 @@ export function OutputPanel({
                   rows={1}
                   className="mt-2 field-sizing-content w-full resize-none bg-transparent font-serif text-lg text-ink-2 italic placeholder:text-rule-strong focus:outline-none"
                 />
+                {!formatting && (
+                  <TitleIdeas transcript={transcript} current={doc.title} onPick={(title) => onDocChange({ ...doc, title })} />
+                )}
                 <TagsInput tags={doc.tags} onChange={(tags) => onDocChange({ ...doc, tags })} />
               </header>
               {layout === 'thread' ? (
@@ -432,6 +492,26 @@ export function OutputPanel({
         </div>
       )}
     </Panel>
+  )
+}
+
+function TitleIdeas({ transcript, current, onPick }: { transcript: string; current: string; onPick: (title: string) => void }) {
+  const ideas = useMemo(() => titleCandidates(transcript), [transcript]).filter((t) => t.toLowerCase() !== current.trim().toLowerCase())
+  if (!ideas.length) return null
+  return (
+    <div className="mt-3 flex flex-wrap items-baseline gap-x-1 gap-y-1 text-[13px]">
+      <span className="small-caps mr-1 text-ink-3">Other titles, in your words</span>
+      {ideas.slice(0, 4).map((t) => (
+        <button
+          key={t}
+          type="button"
+          onClick={() => onPick(t)}
+          className="rounded-full px-2 py-0.5 font-serif text-ink-2 italic underline decoration-rule-strong underline-offset-4 hover:bg-well hover:text-ink"
+        >
+          {t}
+        </button>
+      ))}
+    </div>
   )
 }
 
