@@ -38,7 +38,10 @@
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
-    "vitest": "^5.0.4"
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.4",
+    "workbox-build": "^7.4.1",
+    "workbox-window": "^7.4.1"
   },
   "packageManager": "pnpm@10.5.2",
   "description": "Talk it out, publish it clean: local speech-to-text that auto-formats rambling into blog-ready writing.",
