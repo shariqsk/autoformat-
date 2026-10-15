@@ -70,8 +70,9 @@ Most "AI formatters" hand your words to a model and get back something that soun
 
 **🎙️ Talk**
 
-- **Live Whisper transcription.** The recording is cut into ~12 s segments at natural pauses and transcribed while you speak, so the text is ready the moment you stop. It runs on your device using WebGPU (or WASM as a fallback), with Tiny / Base / Small / multilingual / Large-v3-Turbo models.
-- **Browser speech mode** puts words on screen instantly as you speak (Chrome sends that audio to Google).
+- **Private mode (default): live Whisper transcription.** The recording is cut into ~12 s segments at natural pauses and transcribed while you speak, so the text is ready the moment you stop. It runs on your device using WebGPU (or WASM as a fallback).
+- **Pick your speech model right in the Talk panel:** *Quick* (65 MB), *Balanced* (135 MB), *Accurate* (510 MB), *Any language* or *Best quality* (1.1 GB). The panel shows whether it's downloaded yet. Pressing record gets the model ready first, so nothing you say is lost while it downloads.
+- **Online mode** puts words on screen instantly using your browser's speech service (Chrome, Edge and Safari send that audio to Google, Microsoft or Apple). It's hidden where it can't work, and if the service is unreachable you're switched back to Private mode with an explanation.
 - **Tape-deck controls:** live waveform, timecode, pause and resume (<kbd>Space</kbd>), and **Save audio** for every take.
 - **Other input:** upload or **drag in** any audio or video file, or drop a `.txt`/`.md`. **Sample** loads a demo ramble.
 
@@ -231,7 +232,7 @@ src/
 
 ## Browser support
 
-Chrome and Edge get everything: WebGPU acceleration, live browser speech and rich clipboard. Safari and Firefox run Whisper on WASM, which is slower, so use Tiny or Base there. Browser speech mode depends on `SpeechRecognition` support.
+Chrome and Edge get everything: WebGPU acceleration, Online mode and rich clipboard. Safari and Firefox run Whisper on WASM, which is slower, so pick *Quick* or *Balanced* there. Online mode isn't available in Firefox, Brave or the desktop app.
 
 ## License
 
