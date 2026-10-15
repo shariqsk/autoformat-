@@ -111,7 +111,7 @@ export function HistoryDrawer({
                   entry.id === activeId ? 'bg-well' : 'hover:bg-paper',
                 )}
               >
-                <span className="mt-0.5 w-12 shrink-0 rounded-md bg-well p-1 text-ink-3">
+                <span className="mt-0.5 w-12 shrink-0 rounded-md bg-sheet p-1 text-ink-3 ring-1 ring-rule">
                   <LayoutThumb layout={entry.options.layout} />
                 </span>
                 <span className="min-w-0 flex-1 pr-6">
