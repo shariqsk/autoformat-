@@ -234,6 +234,25 @@ src/
 
 Chrome and Edge get everything: WebGPU acceleration, Online mode and rich clipboard. Safari and Firefox run Whisper on WASM, which is slower, so pick *Quick* or *Balanced* there. Online mode isn't available in Firefox, Brave or the desktop app.
 
+## Credits
+
+AutoFormat stands on open models and open-source software.
+
+**Models**
+
+| Model | By | Used for | License |
+| --- | --- | --- | --- |
+| [Whisper](https://github.com/openai/whisper) (Tiny, Base, Small, Large v3 Turbo) | OpenAI | Speech recognition on your device | MIT |
+| [Gemma 3 1B](https://ai.google.dev/gemma) | Google | In-browser titles and headings | Gemma Terms of Use |
+| [Qwen 2.5](https://qwenlm.github.io) (0.5B, 1.5B) | Alibaba Qwen | Alternative in-browser models | Apache 2.0 |
+| [ONNX conversions](https://huggingface.co/onnx-community) | Hugging Face onnx-community | Browser-ready versions of the models above | Same as each model |
+
+Cloud and local editors (Claude, Ollama models, OpenAI-compatible endpoints) are used only if you choose them, under their providers' own terms.
+
+**Software:** [Transformers.js](https://github.com/huggingface/transformers.js) by Hugging Face (Apache 2.0), [ONNX Runtime Web](https://onnxruntime.ai) by Microsoft (MIT), React, Vite, Tailwind CSS and [Electron](https://www.electronjs.org) (MIT).
+
+**Type:** Unbounded, Bricolage Grotesque, Space Grotesk, Space Mono, Geist, Instrument Serif, Newsreader, Inter Tight and JetBrains Mono, all under the SIL Open Font License, via [Fontsource](https://fontsource.org).
+
 ## License
 
 MIT
