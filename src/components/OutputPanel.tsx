@@ -210,8 +210,8 @@ function ChangesView({
                     onClick={() => onKeep(word.toLowerCase())}
                     title={isKept ? `“${word}” is on your keep list. Format again to bring it back.` : `Always keep “${word}”`}
                     className={cx(
-                      'cursor-pointer rounded-sm hover:bg-accent-wash hover:text-ink',
-                      isKept && 'cursor-default text-olive no-underline',
+                      'cursor-pointer rounded-sm line-through decoration-accent/60 hover:bg-accent-wash hover:text-ink',
+                      isKept && 'cursor-default text-olive no-underline decoration-olive/60',
                     )}
                   >
                     {token}
