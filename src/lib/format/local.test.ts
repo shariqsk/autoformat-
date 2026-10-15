@@ -1,0 +1,72 @@
+import { describe, expect, it } from 'vitest'
+import { deriveTitle, formatLocally } from './local'
+import { LAYOUTS } from './styles'
+import { DEFAULT_OPTIONS, type FormatOptions } from './types'
+
+const TRANSCRIPT = `so um today I want to talk about why I started using local AI models for my blog. yeah bro honestly it's kinda crazy how good they've gotten.
+I used to pay twenty bucks a month for this stuff, but now I just download a model and it runs on my laptop. the best part is privacy because nothing leaves my machine.
+anyway another thing is speed. whisper transcribes faster than I can talk. first you download the model. then you hit record. finally you export the markdown.
+what's the catch? honestly there isn't much of one, the setup takes five minutes. so yeah that's pretty much it lol`
+
+const opts = (o: Partial<FormatOptions> = {}): FormatOptions => ({ ...DEFAULT_OPTIONS, ...o })
+const NOW = new Date('2026-10-15T12:00:00Z')
+
+describe('formatLocally', () => {
+  it('produces a titled blog post with tags and description', () => {
+    const doc = formatLocally(TRANSCRIPT, opts(), NOW)
+    expect(doc.title).toBe('Why I Started Using Local AI Models for My Blog')
+    expect(doc.tags.length).toBeGreaterThan(0)
+    expect(doc.description.length).toBeLessThanOrEqual(160)
+    expect(doc.body).not.toMatch(/\bum\b/)
+  })
+
+  it('renders every layout without throwing and with non-empty output', () => {
+    for (const layout of LAYOUTS) {
+      const doc = formatLocally(TRANSCRIPT, opts({ layout: layout.id }), NOW)
+      expect(doc.body.trim().length, layout.id).toBeGreaterThan(50)
+    }
+  })
+
+  it('turns sequencing words into numbered steps for how-tos', () => {
+    const doc = formatLocally(TRANSCRIPT, opts({ layout: 'howto' }), NOW)
+    expect(doc.body).toContain('## Steps')
+    expect(doc.body).toMatch(/1\. You download the model\./)
+    expect(doc.body).toMatch(/2\. You hit record\./)
+  })
+
+  it('uses spoken questions as Q&A headings', () => {
+    const doc = formatLocally(TRANSCRIPT, opts({ layout: 'qa' }), NOW)
+    expect(doc.body).toContain("### What's the catch?")
+  })
+
+  it('keeps thread posts within the character limit', () => {
+    const doc = formatLocally(TRANSCRIPT.repeat(3), opts({ layout: 'thread' }), NOW)
+    const posts = doc.body.split('\n\n')
+    expect(posts.length).toBeGreaterThan(1)
+    for (const post of posts) expect(post.length).toBeLessThanOrEqual(280)
+    expect(posts[0]).toMatch(/^1\/\d+ /)
+  })
+
+  it('formalises slang in professional tone', () => {
+    const doc = formatLocally(TRANSCRIPT, opts({ tone: 'professional' }), NOW)
+    expect(doc.body).not.toMatch(/\b(bro|lol|kinda|bucks)\b/i)
+  })
+
+  it('respects title, tag and summary toggles', () => {
+    const doc = formatLocally(TRANSCRIPT, opts({ includeTitle: false, includeTags: false, includeSummary: true }), NOW)
+    expect(doc.title).toBe('')
+    expect(doc.tags).toEqual([])
+    expect(doc.body.startsWith('> **TL;DR:**')).toBe(true)
+  })
+
+  it('handles empty input', () => {
+    expect(formatLocally('', opts(), NOW).body).toBe('')
+  })
+})
+
+describe('deriveTitle', () => {
+  it('falls back to keywords when no sentence fits', () => {
+    const long = 'Whisper models transcribe speech locally and the transcription quality of whisper models keeps improving every single release cycle.'
+    expect(deriveTitle([[long]])).toMatch(/^Thoughts on /)
+  })
+})
