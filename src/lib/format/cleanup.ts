@@ -40,6 +40,7 @@ const VERBAL_TICS: Rule[] = [
   [/\b(yeah|so|and|but|okay|it's|was|is)\s+like,?\s+/gi, '$1 '],
   [/\blike,?\s+(?=(?:honestly|literally|really|totally|just|basically|actually|so|um|uh)\b)/gi, ''],
   [/\b(?:basically|literally),?\s+/gi, ''],
+  [/,\s*like,?\s+(?=(?:I|I'm|I'll|I've|we|you|it|they|he|she)\b)/g, ', '],
   [/,?\s*\b(?:or something(?: like that)?|or whatever|and stuff like that|and all that)\b/gi, ''],
 ]
 
@@ -55,6 +56,7 @@ const SLANG: Rule[] = [
   swap('gonna', 'going to'),
   swap('wanna', 'want to'),
   swap('gotta', 'have to'),
+  [/\b(?:kinda|sorta)\s+(?=just\b|like\b)/gi, ''],
   swap('kinda', 'somewhat'),
   swap('sorta', 'somewhat'),
   swap('gimme', 'give me'),

@@ -17,11 +17,14 @@ describe('scrub', () => {
   it('removes verbal tics from "my voice" upward', () => {
     expect(scrub('it was, like, really good, you know, and stuff', 1)).toBe('it was, really good, and stuff')
     expect(scrub('do you know what I mean', 1)).toBe('do you know what I mean')
+    expect(scrub("I hate typing, like I'll sit there", 1)).toBe("I hate typing, I'll sit there")
+    expect(scrub('I like it', 1)).toBe('I like it')
   })
 
   it('formalises slang for professional tones', () => {
     const out = scrub("yeah bro I'm gonna grab a bunch of stuff lol", 2)
     expect(out).toBe("I'm going to grab several things")
+    expect(scrub("it's kinda just there", 2)).toBe("it's just there")
   })
 
   it('expands contractions for academic tone', () => {
