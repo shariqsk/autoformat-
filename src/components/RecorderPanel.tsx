@@ -413,7 +413,7 @@ export function RecorderPanel({
             >
               {WHISPER_MODELS.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.label} · {m.size}
+                  {m.label} · {m.name} by {m.maker} · {m.size}
                 </option>
               ))}
             </select>
@@ -425,7 +425,16 @@ export function RecorderPanel({
               </Button>
             )}
             <span className="basis-full sm:basis-auto">
-              {model.note}. Runs on your {device === 'wasm' ? 'CPU' : 'device'}; audio never leaves it.{' '}
+              {model.note}. Uses{' '}
+              <a
+                href={model.url}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-ink-2 underline decoration-edge-ctl underline-offset-2 hover:text-ink"
+              >
+                {model.name}
+              </a>{' '}
+              by {model.maker}, running on your {device === 'wasm' ? 'CPU' : 'device'}; audio never leaves it.{' '}
               <button type="button" onClick={onOpenSettings} className="underline decoration-edge-ctl underline-offset-2 hover:text-ink">
                 More options
               </button>
