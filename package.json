@@ -33,5 +33,8 @@
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.4"
-  }
+  },
+  "packageManager": "pnpm@10.5.2",
+  "description": "Talk it out, publish it clean: local speech-to-text that auto-formats rambling into blog-ready writing.",
+  "license": "MIT"
 }
