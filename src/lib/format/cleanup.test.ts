@@ -40,6 +40,16 @@ describe('scrub', () => {
     expect(scrub("it's kinda crazy and we can't stop", 3)).toBe("it's a bit crazy and we can't stop")
   })
 
+  it('does not mangle ordinary sentences', () => {
+    expect(scrub('I met an old man.', 3)).toBe('I met an old man.')
+    expect(scrub('It was a wild ride, man.', 3)).toBe('It was a wild ride.')
+    expect(scrub('It was like a dream.', 3)).toBe('It was like a dream.')
+    expect(scrub('She was like, no way.', 1)).toBe('She was like, no way.')
+    expect(scrub('She was like, no way.', 3)).toBe('She said, no way.')
+    expect(scrub('we watched the super bowl', 3)).toBe('we watched the super bowl')
+    expect(scrub("it's super easy", 3)).toBe("it's really easy")
+  })
+
   it('protects keep-words from every rule', () => {
     expect(scrub('yeah bro gonna be lit lol', 3, ['bro', 'gonna'])).toBe('bro gonna be lit')
   })

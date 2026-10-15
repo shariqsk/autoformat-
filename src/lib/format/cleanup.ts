@@ -37,7 +37,8 @@ const VERBAL_TICS: Rule[] = [
   [/,\s*like,/gi, ','],
   [/(^|[.!?]\s+)like,\s*/gi, '$1'],
   [/\blike,?\s+(?=like\b)/gi, ''],
-  [/\b(yeah|so|and|but|okay|it's|was|is)\s+like,?\s+(?!(?:a|an|the|this|that|me|him|her|them|us|it)\b)/gi, '$1 '],
+  // "so like we went" → "so we went"; not "was like, no way" (a quote) or "was like a dream" (a comparison).
+  [/\b(yeah|so|and|but|okay|it's|was|is)\s+like\s+(?!(?:a|an|the|this|that|me|him|her|them|us|it)\b)/gi, '$1 '],
   [/\blike,?\s+(?=(?:honestly|literally|really|totally|just|basically|actually|so|um|uh)\b)/gi, ''],
   [/\b(?:basically|literally),\s+/gi, ''],
   [/,\s*like,?\s+(?=(?:I|I'm|I'll|I've|we|you|it|they|he|she)\b)/g, ', '],
@@ -58,7 +59,9 @@ const CRUDE: Rule[] = [
 const SLANG: Rule[] = [
   [/(^|[.!?]\s+)(?:yeah|yep|yup|yo)\b,?\s*/gi, '$1'],
   [/(^|[,.!?]\s*|\b(?:yeah|yo|okay|ok|nah|no|like|man)\s+)(?:bro|bruh|dude|fam|homie)\b,?\s*/gi, '$1'],
-  [/,?\s*\b(?:bro|bruh|dude|fam|homie|man)\b(?=\s*(?:[,.!?]|$))/gi, ''],
+  [/,?\s*\b(?:bro|bruh|dude|fam|homie)\b(?=\s*(?:[,.!?]|$))/gi, ''],
+  // "man" only when it's tacked on as an address ("it was wild, man."), never "an old man."
+  [/,\s*\bman\b(?=\s*(?:[,.!?]|$))/gi, ''],
   swap('gonna', 'going to'),
   swap('wanna', 'want to'),
   swap('gotta', 'have to'),
@@ -83,8 +86,12 @@ const SLANG: Rule[] = [
   swap('dope', 'great'),
   swap('a bunch of', 'a lot of'),
   swap('bucks', 'dollars'),
-  [/\bsuper (?=\w)/gi, (m) => matchCase(m, 'really ')],
-  [/\bwas like,?\s*/gi, (m) => matchCase(m, 'said, ')],
+  [
+    /\bsuper (?=(?:good|bad|easy|hard|fast|slow|cool|fun|nice|simple|helpful|useful|excited|happy|interesting|weird|annoying|expensive|cheap|quick|smart|clean|small|big|long|short|tired|busy|popular|powerful|important|chill|hyped)\b)/gi,
+    (m) => matchCase(m, 'really '),
+  ],
+  // Quotative "was like," before a quote or an exclamation → "said,". Comparisons ("was like a dream") stay.
+  [/\bwas like,\s*(?=["“]|(?:I|you|he|she|we|they|no|yes|yeah|oh|what|wait|bro|dude|okay)\b)/gi, (m) => matchCase(m, 'said, ')],
 ]
 
 function applyRules(text: string, rules: Rule[]): string {
