@@ -1,6 +1,9 @@
 export interface ModelOption {
   id: string
+  /** Plain-language name shown first. */
   label: string
+  /** The technical name, for people who care. */
+  detail?: string
   size: string
   note: string
   /** Only practical with WebGPU acceleration. */
@@ -10,15 +13,40 @@ export interface ModelOption {
 /** Whisper checkpoints converted to ONNX; downloaded once from Hugging Face and cached by the browser.
  *  Sizes are for WebGPU; the CPU (WASM) variants are smaller. */
 export const WHISPER_MODELS: ModelOption[] = [
-  { id: 'onnx-community/whisper-tiny.en', label: 'Whisper Tiny · English', size: '~65 MB', note: 'Fastest, fine for quick notes' },
-  { id: 'onnx-community/whisper-base.en', label: 'Whisper Base · English', size: '~135 MB', note: 'Good default on any laptop' },
-  { id: 'onnx-community/whisper-small.en', label: 'Whisper Small · English', size: '~510 MB', note: 'Noticeably more accurate' },
-  { id: 'onnx-community/whisper-base', label: 'Whisper Base · Multilingual', size: '~135 MB', note: '99 languages' },
+  {
+    id: 'onnx-community/whisper-tiny.en',
+    label: 'Quick',
+    detail: 'Whisper Tiny · English',
+    size: '65 MB',
+    note: 'Fastest, fine for quick notes',
+  },
+  {
+    id: 'onnx-community/whisper-base.en',
+    label: 'Balanced',
+    detail: 'Whisper Base · English',
+    size: '135 MB',
+    note: 'The best start for most laptops',
+  },
+  {
+    id: 'onnx-community/whisper-small.en',
+    label: 'Accurate',
+    detail: 'Whisper Small · English',
+    size: '510 MB',
+    note: 'Catches more words, a little slower',
+  },
+  {
+    id: 'onnx-community/whisper-base',
+    label: 'Any language',
+    detail: 'Whisper Base · 99 languages',
+    size: '135 MB',
+    note: 'For speaking languages other than English',
+  },
   {
     id: 'onnx-community/whisper-large-v3-turbo',
-    label: 'Whisper Large v3 Turbo',
-    size: '~1.1 GB',
-    note: 'Best accuracy, multilingual',
+    label: 'Best quality',
+    detail: 'Whisper Large v3 Turbo',
+    size: '1.1 GB',
+    note: 'Most accurate, any language',
     needsGpu: true,
   },
 ]
