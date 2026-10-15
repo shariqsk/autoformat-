@@ -47,6 +47,18 @@ describe('AI-isms', () => {
     expect(fixAiIsms('In conclusion, it works.')).toBe('It works.')
   })
 
+  it('never touches code, links or images, and only edits around each fix', () => {
+    const md = 'Run `utilize()` and read [the guide](https://robust.dev/utilize). We utilize npm.\n\n- iPhone stays\n- eBay too'
+    expect(findAiIsms(md).map((h) => h.text)).toEqual(['utilize'])
+    expect(fixAiIsms(md)).toBe(
+      'Run `utilize()` and read [the guide](https://robust.dev/utilize). We use npm.\n\n- iPhone stays\n- eBay too',
+    )
+  })
+
+  it('does not merge lines when fixing em dashes', () => {
+    expect(fixAiIsms('- one —\n- two — three — four')).toBe('- one,\n- two, three, four')
+  })
+
   it('leaves flag-only hits for a human', () => {
     expect(fixAiIsms('This will unlock the potential of blogs.')).toBe('This will unlock the potential of blogs.')
   })

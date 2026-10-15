@@ -5,7 +5,6 @@ import { downloadText, useCopy } from '../hooks/useCopy'
 import { useSpeech } from '../hooks/useSpeech'
 import { changes, findAiIsms, fixAiIsms, readability, voiceMatch } from '../lib/analysis/voice'
 import {
-  escapeHtml,
   EXPORT_FORMATS,
   exportFilename,
   exportFormatById,
@@ -37,16 +36,37 @@ async function copyRich(html: string, plain: string) {
   }
 }
 
-/** Wrap AI-isms in highlighter marks, skipping fenced code. */
-function highlightAiIsms(markdown: string): string {
-  const fences = [...markdown.matchAll(/```[\s\S]*?```/g)].map((m) => [m.index, m.index + m[0].length])
-  const hits = findAiIsms(markdown).filter((h) => !fences.some(([a, b]) => h.start >= a && h.start < b))
-  let out = markdown
-  for (const h of [...hits].reverse()) {
-    const tip = h.fix === null ? `${h.why}. Worth rewriting in your own words.` : `${h.why}. Try “${h.fix.trim() || 'cutting it'}”.`
-    out = `${out.slice(0, h.start)}<mark class="ai-ism" title="${escapeHtml(tip)}">${out.slice(h.start, h.end)}</mark>${out.slice(h.end)}`
+/**
+ * Wrap AI-isms in highlighter marks. Works on the sanitized HTML's text nodes (never inside code,
+ * pre or links) so markup can't be broken, and builds the marks with DOM APIs so nothing is injected.
+ */
+function highlightAiIsms(html: string): string {
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html')
+  const root = doc.body.firstElementChild!
+  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  const nodes: Text[] = []
+  while (walker.nextNode()) {
+    const node = walker.currentNode as Text
+    if (!node.parentElement?.closest('code, pre, a')) nodes.push(node)
   }
-  return out
+  for (const node of nodes) {
+    const hits = findAiIsms(node.data)
+    if (!hits.length) continue
+    const frag = doc.createDocumentFragment()
+    let pos = 0
+    for (const h of hits) {
+      frag.append(node.data.slice(pos, h.start))
+      const mark = doc.createElement('mark')
+      mark.className = 'ai-ism'
+      mark.title = h.fix === null ? `${h.why}. Worth rewriting in your own words.` : `${h.why}. Try “${h.fix.trim() || 'cutting it'}”.`
+      mark.textContent = node.data.slice(h.start, h.end)
+      frag.append(mark)
+      pos = h.end
+    }
+    frag.append(node.data.slice(pos))
+    node.replaceWith(frag)
+  }
+  return root.innerHTML
 }
 
 function ScoreRing({ score }: { score: number }) {
@@ -286,21 +306,17 @@ export function OutputPanel({
   const [view, setView] = useState<View>('read')
   const [format, setFormat] = useState<ExportFormatId>('markdown')
   const { copied, copy } = useCopy()
-  const [beforeFix, setBeforeFix] = useState<FormattedDoc | null>(null)
+  // Undo for the AI-tell fix: remembers the body before and after, and stays available only while
+  // the body is still exactly what the fix produced. Title or tag edits are kept on undo.
+  const [fix, setFix] = useState<{ before: string; after: string } | null>(null)
+  const canUndo = !!fix && doc?.body === fix.after
   const speech = useSpeech()
 
-  // A new draft (or any edit other than the fix itself) retires the undo.
-  const docId = doc ? `${doc.title}\u0000${doc.body.length}` : ''
-  const [lastDocId, setLastDocId] = useState(docId)
-  if (docId !== lastDocId) {
-    setLastDocId(docId)
-    if (beforeFix && doc?.body !== fixAiIsms(beforeFix.body)) setBeforeFix(null)
-  }
-
-  const html = useMemo(
-    () => (doc ? DOMPurify.sanitize(toHtmlFragment({ ...doc, title: '', body: formatting ? doc.body : highlightAiIsms(doc.body) })) : ''),
-    [doc, formatting],
-  )
+  const html = useMemo(() => {
+    if (!doc) return ''
+    const safe = DOMPurify.sanitize(toHtmlFragment({ ...doc, title: '' }))
+    return formatting ? safe : highlightAiIsms(safe)
+  }, [doc, formatting])
   const exportFormat = exportFormatById(format)
   const exported = useMemo(() => (doc && view === 'export' ? exportFormat.render(doc, ctx) : ''), [doc, ctx, view, exportFormat])
 
@@ -404,14 +420,15 @@ export function OutputPanel({
               transcript={transcript}
               doc={doc}
               onFix={() => {
-                setBeforeFix(doc)
-                onDocChange({ ...doc, body: fixAiIsms(doc.body) })
+                const after = fixAiIsms(doc.body)
+                setFix({ before: doc.body, after })
+                onDocChange({ ...doc, body: after })
               }}
               onUndo={
-                beforeFix
+                canUndo
                   ? () => {
-                      onDocChange(beforeFix)
-                      setBeforeFix(null)
+                      onDocChange({ ...doc, body: fix.before })
+                      setFix(null)
                     }
                   : null
               }
