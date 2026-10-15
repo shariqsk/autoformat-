@@ -240,36 +240,42 @@ export function RecorderPanel({
           <Waveform analyser={recorder.analyser} paused={recorder.state === 'paused'} className="h-16 w-full sm:h-20" />
 
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3">
-            <button
-              type="button"
-              onClick={toggle}
-              disabled={phase === 'finishing' || phase === 'file'}
-              aria-label={recording ? 'Stop recording' : 'Start recording'}
-              className="group relative grid size-16 shrink-0 place-items-center rounded-full bg-sheet shadow-lift ring-1 ring-rule-strong transition-transform hover:scale-[1.04] active:scale-95 disabled:opacity-50"
-            >
-              {recording && <span className="absolute inset-0 animate-ping rounded-full bg-accent/20 [animation-duration:2s]" />}
-              <span
-                className={cx(
-                  'bg-accent transition-all duration-200',
-                  recording ? 'size-5 rounded-[5px]' : 'size-9 rounded-full group-hover:size-10',
-                )}
-              />
-            </button>
+            <div className="flex min-w-0 items-center gap-4">
+              <button
+                type="button"
+                onClick={toggle}
+                disabled={phase === 'finishing' || phase === 'file'}
+                aria-label={recording ? 'Stop recording' : 'Start recording'}
+                className="group relative grid size-16 shrink-0 place-items-center rounded-full bg-sheet shadow-lift ring-1 ring-rule-strong transition-transform hover:scale-[1.04] active:scale-95 disabled:opacity-50"
+              >
+                {recording && <span className="absolute inset-0 animate-ping rounded-full bg-accent/20 [animation-duration:2s]" />}
+                <span
+                  className={cx(
+                    'bg-accent transition-all duration-200',
+                    recording ? 'size-5 rounded-[5px]' : 'size-9 rounded-full group-hover:size-10',
+                  )}
+                />
+              </button>
 
-            <div className="min-w-0">
-              <p className={cx('font-mono text-[1.65rem] leading-none tabular-nums', recording ? 'text-ink' : 'text-ink-3')}>
-                {timecode(recorder.elapsed)}
-              </p>
-              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-3">
-                {recorder.state === 'recording' && <span className="size-1.5 animate-blink rounded-full bg-accent" />}
-                {status ?? (
-                  <>
-                    Tap the button or press <Kbd>R</Kbd> to start talking
-                  </>
-                )}
-              </p>
+              <div className="min-w-0">
+                <p className={cx('font-mono text-[1.65rem] leading-none tabular-nums', recording ? 'text-ink' : 'text-ink-3')}>
+                  {timecode(recorder.elapsed)}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-ink-3">
+                  {recorder.state === 'recording' && (
+                    <span className="mr-1.5 inline-block size-1.5 animate-blink rounded-full bg-accent align-middle" />
+                  )}
+                  {status ?? (
+                    <>
+                      <span className="sm:hidden">Tap to start talking</span>
+                      <span className="hidden sm:inline">
+                        Tap the button or press <Kbd>R</Kbd> to start talking
+                      </span>
+                    </>
+                  )}
+                </p>
+              </div>
             </div>
-
             <div className="ml-auto flex items-center gap-1">
               {recording && !webSpeech && (
                 <Button variant="outline" size="sm" onClick={recorder.state === 'recording' ? recorder.pause : recorder.resume}>

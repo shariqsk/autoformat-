@@ -176,7 +176,7 @@ export default function App() {
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0">
             <p className="small-caps hidden text-ink-3 sm:block">The dictation desk · {today}</p>
-            <h1 className="mt-1 font-display text-[2.75rem] leading-[0.9] tracking-tight text-ink sm:text-[4rem]">
+            <h1 className="mt-1 font-display text-[2.75rem] leading-[0.9] tracking-tight whitespace-nowrap text-ink sm:text-[4rem]">
               Auto<span className="text-accent italic">format</span>
               <span className="ml-1 inline-block size-2.5 animate-blink rounded-full bg-accent align-top sm:size-3" aria-hidden />
             </h1>
