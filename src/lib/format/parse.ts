@@ -2,17 +2,16 @@ import { extractKeywords, stripMarkdown, truncate } from './text'
 import type { FormatOptions, FormattedDoc } from './types'
 
 function parseFrontmatterValue(value: string): string {
-  return value.trim().replace(/^(["'])(.*)\1$/, '$2').trim()
+  return value
+    .trim()
+    .replace(/^(["'])(.*)\1$/, '$2')
+    .trim()
 }
 
 function parseTags(value: string, listLines: string[]): string[] {
   const inline = value.trim()
-  const items = inline
-    ? inline.replace(/^\[|\]$/g, '').split(',')
-    : listLines.map((l) => l.replace(/^\s*-\s*/, ''))
-  return items
-    .map((t) => parseFrontmatterValue(t).replace(/^#/, '').toLowerCase())
-    .filter(Boolean)
+  const items = inline ? inline.replace(/^\[|\]$/g, '').split(',') : listLines.map((l) => l.replace(/^\s*-\s*/, ''))
+  return items.map((t) => parseFrontmatterValue(t).replace(/^#/, '').toLowerCase()).filter(Boolean)
 }
 
 /**

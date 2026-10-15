@@ -10,7 +10,8 @@ import { Button } from './ui'
 function relativeDay(iso: string) {
   const d = new Date(iso)
   const days = Math.floor((Date.now() - d.getTime()) / 86_400_000)
-  if (days < 1 && new Date().getDate() === d.getDate()) return `Today, ${d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
+  if (days < 1 && new Date().getDate() === d.getDate())
+    return `Today, ${d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
   if (days < 2) return 'Yesterday'
   if (days < 7) return d.toLocaleDateString(undefined, { weekday: 'long' })
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
@@ -53,7 +54,10 @@ export function HistoryDrawer({
   return (
     <>
       <div
-        className={cx('fixed inset-0 z-40 bg-ink/30 backdrop-blur-[1px] transition-opacity', open ? 'opacity-100' : 'pointer-events-none opacity-0')}
+        className={cx(
+          'fixed inset-0 z-40 bg-ink/30 backdrop-blur-[1px] transition-opacity',
+          open ? 'opacity-100' : 'pointer-events-none opacity-0',
+        )}
         onClick={onClose}
       />
       <aside
@@ -94,7 +98,9 @@ export function HistoryDrawer({
               <p className="mt-1 text-sm text-ink-3">Every piece you format is saved here, in this browser only.</p>
             </li>
           )}
-          {entries.length > 0 && filtered.length === 0 && <li className="px-4 py-10 text-center text-sm text-ink-3">No drafts match “{query}”.</li>}
+          {entries.length > 0 && filtered.length === 0 && (
+            <li className="px-4 py-10 text-center text-sm text-ink-3">No drafts match “{query}”.</li>
+          )}
           {filtered.map((entry) => (
             <li key={entry.id} className="group relative">
               <button
@@ -112,7 +118,9 @@ export function HistoryDrawer({
                   <span className="block truncate font-display text-lg leading-tight text-ink">
                     {entry.doc.title || entry.doc.description || 'Untitled'}
                   </span>
-                  <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-ink-3">{stripMarkdown(entry.doc.body).slice(0, 160)}</span>
+                  <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-ink-3">
+                    {stripMarkdown(entry.doc.body).slice(0, 160)}
+                  </span>
                   <span className="mt-1.5 block font-mono text-[10px] tracking-wide text-ink-3 uppercase">
                     {relativeDay(entry.createdAt)} · {layoutById(entry.options.layout).label} · {toneById(entry.options.tone).label} ·{' '}
                     {wordCount(stripMarkdown(entry.doc.body))}w

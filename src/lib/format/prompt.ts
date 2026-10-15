@@ -27,9 +27,9 @@ export function targetWords(transcript: string, options: FormatOptions): number 
 }
 
 const VOICE_RULES = [
-  'Work from the speaker\'s own sentences. Prefer deleting filler and fixing grammar over rephrasing. Keep their vocabulary, idioms, humour, opinions, rhythm and first-person voice.',
+  "Work from the speaker's own sentences. Prefer deleting filler and fixing grammar over rephrasing. Keep their vocabulary, idioms, humour, opinions, rhythm and first-person voice.",
   'Never add ideas, examples, statistics, transitions, summaries or conclusions the speaker did not say.',
-  'Headings and list items should reuse the speaker\'s own words where possible.',
+  "Headings and list items should reuse the speaker's own words where possible.",
   `It must not read like AI wrote it. Never use: ${AI_ISM_PROMPT_LIST.join(', ')}. Avoid em dashes unless the speaker clearly paused for effect. No rhetorical sign-offs.`,
   'When a word was clearly misheard by speech recognition, use the word the speaker obviously meant.',
 ]
@@ -69,8 +69,8 @@ export function buildPrompt(
   }
 
   const metadata = [
-    options.includeTitle ? 'title: a specific title in the speaker\'s own words where possible (no clickbait, no trailing period)' : null,
-    'description: one sentence (max 160 characters) summarising the piece in the speaker\'s voice',
+    options.includeTitle ? "title: a specific title in the speaker's own words where possible (no clickbait, no trailing period)" : null,
+    "description: one sentence (max 160 characters) summarising the piece in the speaker's voice",
     options.includeTags ? 'tags: 3–6 short lowercase topic tags, as a YAML list like [one, two]' : null,
   ].filter(Boolean)
 

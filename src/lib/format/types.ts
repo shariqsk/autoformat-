@@ -1,14 +1,4 @@
-export type LayoutId =
-  | 'blog'
-  | 'listicle'
-  | 'howto'
-  | 'essay'
-  | 'newsletter'
-  | 'qa'
-  | 'thread'
-  | 'linkedin'
-  | 'notes'
-  | 'journal'
+export type LayoutId = 'blog' | 'listicle' | 'howto' | 'essay' | 'newsletter' | 'qa' | 'thread' | 'linkedin' | 'notes' | 'journal'
 
 /** How much of the raw speech survives. Every mode keeps the speaker's voice. */
 export type ToneId = 'verbatim' | 'raw' | 'polished' | 'formal'

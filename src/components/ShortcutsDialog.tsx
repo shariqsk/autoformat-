@@ -29,7 +29,9 @@ export function ShortcutsDialog({ open, onClose }: { open: boolean; onClose: () 
           </li>
         ))}
       </ul>
-      <p className="mt-4 text-xs text-ink-3">On Windows and Linux, use Ctrl instead of ⌘. Single-key shortcuts are ignored while you're typing.</p>
+      <p className="mt-4 text-xs text-ink-3">
+        On Windows and Linux, use Ctrl instead of ⌘. Single-key shortcuts are ignored while you're typing.
+      </p>
     </Modal>
   )
 }

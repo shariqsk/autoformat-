@@ -87,7 +87,14 @@ function ModelListInput({
   return (
     <div className="space-y-1.5">
       <div className="flex gap-2">
-        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} list={listId} aria-label="Model" className={inputClass} />
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          list={listId}
+          aria-label="Model"
+          className={inputClass}
+        />
         <datalist id={listId}>
           {models.map((m) => (
             <option key={m} value={m} />
@@ -124,119 +131,145 @@ export function SettingsDialog({
 
   return (
     <Modal open={open} onClose={onClose} title="Settings" kicker="The machinery">
-        <div className="space-y-8">
-          <Section
-            title="Speech model"
-            description="OpenAI's Whisper, running entirely in your browser. Downloaded once from Hugging Face, then cached. No account, no cost, and your audio never leaves your device."
+      <div className="space-y-8">
+        <Section
+          title="Speech model"
+          description="OpenAI's Whisper, running entirely in your browser. Downloaded once from Hugging Face, then cached. No account, no cost, and your audio never leaves your device."
+        >
+          <ModelPicker
+            models={WHISPER_MODELS}
+            value={settings.whisperModel}
+            onChange={(whisperModel) => onSettingsChange({ ...settings, whisperModel })}
+          />
+          <Field
+            label="Language"
+            hint="Multilingual Whisper models and live mode use this. Leave empty to auto-detect (Whisper) or use your browser language (live)."
           >
-            <ModelPicker models={WHISPER_MODELS} value={settings.whisperModel} onChange={(whisperModel) => onSettingsChange({ ...settings, whisperModel })} />
-            <Field label="Language" hint="Multilingual Whisper models and live mode use this. Leave empty to auto-detect (Whisper) or use your browser language (live).">
-              <input aria-label="Language"
-                value={settings.language}
-                onChange={(e) => onSettingsChange({ ...settings, language: e.target.value })}
-                placeholder="e.g. english, spanish — or en-US for live mode"
+            <input
+              aria-label="Language"
+              value={settings.language}
+              onChange={(e) => onSettingsChange({ ...settings, language: e.target.value })}
+              placeholder="e.g. english, spanish — or en-US for live mode"
+              className={inputClass}
+            />
+          </Field>
+        </Section>
+
+        <Section
+          title="In-browser AI"
+          description="A small LLM that runs on your GPU via WebGPU. Free and private, but less polished than bigger models."
+        >
+          <ModelPicker models={BROWSER_LLMS} value={engines.browser.model} onChange={(model) => setEngine('browser', { model })} />
+        </Section>
+
+        <Section
+          title="Ollama"
+          description={
+            <>
+              Free local models. Install from ollama.com, then run{' '}
+              <code className="rounded bg-well px-1 font-mono text-ink-2">ollama pull llama3.2</code>.
+            </>
+          }
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Server URL">
+              <input
+                aria-label="Server URL"
+                value={engines.ollama.baseUrl}
+                onChange={(e) => setEngine('ollama', { baseUrl: e.target.value })}
                 className={inputClass}
               />
             </Field>
-          </Section>
-
-          <Section
-            title="In-browser AI"
-            description="A small LLM that runs on your GPU via WebGPU. Free and private, but less polished than bigger models."
-          >
-            <ModelPicker models={BROWSER_LLMS} value={engines.browser.model} onChange={(model) => setEngine('browser', { model })} />
-          </Section>
-
-          <Section
-            title="Ollama"
-            description={
-              <>
-                Free local models. Install from ollama.com, then run <code className="rounded bg-well px-1 font-mono text-ink-2">ollama pull llama3.2</code>.
-              </>
-            }
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Server URL">
-                <input aria-label="Server URL" value={engines.ollama.baseUrl} onChange={(e) => setEngine('ollama', { baseUrl: e.target.value })} className={inputClass} />
-              </Field>
-              <Field label="Model">
-                <ModelListInput
-                  value={engines.ollama.model}
-                  onChange={(model) => setEngine('ollama', { model })}
-                  load={() => listOllamaModels(engines.ollama.baseUrl)}
-                  placeholder="llama3.2"
-                />
-              </Field>
-            </div>
-          </Section>
-
-          <Section title="OpenAI-compatible endpoint" description="Any server that speaks the /v1/chat/completions protocol.">
-            <div className="flex flex-wrap gap-1.5">
-              {OPENAI_PRESETS.map((p) => (
-                <Button
-                  key={p.label}
-                  size="sm"
-                  variant={engines.openai.baseUrl === p.baseUrl ? 'ink' : 'outline'}
-                  onClick={() => setEngine('openai', { baseUrl: p.baseUrl })}
-                >
-                  {p.label}
-                </Button>
-              ))}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Base URL">
-                <input aria-label="Base URL" value={engines.openai.baseUrl} onChange={(e) => setEngine('openai', { baseUrl: e.target.value })} className={inputClass} />
-              </Field>
-              <Field label="API key" hint="Not needed for local servers.">
-                <input aria-label="API key"
-                  type="password"
-                  value={engines.openai.apiKey}
-                  onChange={(e) => setEngine('openai', { apiKey: e.target.value })}
-                  placeholder="sk-…"
-                  autoComplete="off"
-                  className={inputClass}
-                />
-              </Field>
-            </div>
             <Field label="Model">
               <ModelListInput
-                value={engines.openai.model}
-                onChange={(model) => setEngine('openai', { model })}
-                load={() => listOpenAiModels(engines.openai)}
-                placeholder="model id"
+                value={engines.ollama.model}
+                onChange={(model) => setEngine('ollama', { model })}
+                load={() => listOllamaModels(engines.ollama.baseUrl)}
+                placeholder="llama3.2"
               />
             </Field>
-          </Section>
+          </div>
+        </Section>
 
-          <Section title="Claude (Anthropic)" description="Best-in-class editing. Bring your own API key from console.anthropic.com.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="API key">
-                <input aria-label="API key"
-                  type="password"
-                  value={engines.anthropic.apiKey}
-                  onChange={(e) => setEngine('anthropic', { apiKey: e.target.value })}
-                  placeholder="sk-ant-…"
-                  autoComplete="off"
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Model">
-                <select aria-label="Model" value={engines.anthropic.model} onChange={(e) => setEngine('anthropic', { model: e.target.value })} className={inputClass}>
-                  {CLAUDE_MODELS.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-          </Section>
+        <Section title="OpenAI-compatible endpoint" description="Any server that speaks the /v1/chat/completions protocol.">
+          <div className="flex flex-wrap gap-1.5">
+            {OPENAI_PRESETS.map((p) => (
+              <Button
+                key={p.label}
+                size="sm"
+                variant={engines.openai.baseUrl === p.baseUrl ? 'ink' : 'outline'}
+                onClick={() => setEngine('openai', { baseUrl: p.baseUrl })}
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Base URL">
+              <input
+                aria-label="Base URL"
+                value={engines.openai.baseUrl}
+                onChange={(e) => setEngine('openai', { baseUrl: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="API key" hint="Not needed for local servers.">
+              <input
+                aria-label="API key"
+                type="password"
+                value={engines.openai.apiKey}
+                onChange={(e) => setEngine('openai', { apiKey: e.target.value })}
+                placeholder="sk-…"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </Field>
+          </div>
+          <Field label="Model">
+            <ModelListInput
+              value={engines.openai.model}
+              onChange={(model) => setEngine('openai', { model })}
+              load={() => listOpenAiModels(engines.openai)}
+              placeholder="model id"
+            />
+          </Field>
+        </Section>
 
-          <p className="flex items-start gap-2 rounded-xl bg-well p-3 text-xs leading-relaxed text-ink-3">
-            <KeyRound className="mt-0.5 size-3.5 shrink-0" />
-            Settings and API keys are stored only in this browser's localStorage and are sent nowhere except the endpoint you configure.
-          </p>
-        </div>
+        <Section title="Claude (Anthropic)" description="Best-in-class editing. Bring your own API key from console.anthropic.com.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="API key">
+              <input
+                aria-label="API key"
+                type="password"
+                value={engines.anthropic.apiKey}
+                onChange={(e) => setEngine('anthropic', { apiKey: e.target.value })}
+                placeholder="sk-ant-…"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Model">
+              <select
+                aria-label="Model"
+                value={engines.anthropic.model}
+                onChange={(e) => setEngine('anthropic', { model: e.target.value })}
+                className={inputClass}
+              >
+                {CLAUDE_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </Section>
+
+        <p className="flex items-start gap-2 rounded-xl bg-well p-3 text-xs leading-relaxed text-ink-3">
+          <KeyRound className="mt-0.5 size-3.5 shrink-0" />
+          Settings and API keys are stored only in this browser's localStorage and are sent nowhere except the endpoint you configure.
+        </p>
+      </div>
     </Modal>
   )
 }

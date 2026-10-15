@@ -78,7 +78,11 @@ export function Segmented<T extends string>({
   className?: string
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className={cx('inline-flex rounded-full bg-well p-0.5 ring-1 ring-inset ring-rule', className)}>
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className={cx('inline-flex rounded-full bg-well p-0.5 ring-1 ring-rule ring-inset', className)}
+    >
       {options.map((o) => (
         <button
           key={o.value}
@@ -109,7 +113,7 @@ export function CheckChip({ checked, onChange, label }: { checked: boolean; onCh
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={cx(
-        'inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium ring-1 ring-inset transition-colors',
+        'inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium ring-1 transition-colors ring-inset',
         checked ? 'bg-ink text-paper ring-ink' : 'text-ink-2 ring-rule-strong hover:bg-well',
       )}
     >
@@ -136,7 +140,11 @@ export function Badge({
     accent: 'bg-accent-wash text-accent-deep',
     marker: 'bg-marker text-ink',
   }
-  return <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium', tones[tone], className)}>{children}</span>
+  return (
+    <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium', tones[tone], className)}>
+      {children}
+    </span>
+  )
 }
 
 export function ProgressBar({ value }: { value: number | null }) {

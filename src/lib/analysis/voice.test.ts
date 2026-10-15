@@ -17,7 +17,10 @@ describe('voiceMatch', () => {
 
   it('ignores markdown syntax, headings and TL;DR lines when scoring', () => {
     expect(voiceMatch('hello there friend', '**hello** there friend').score).toBe(100)
-    const m = voiceMatch('I hate typing so I talk instead', '## Typing Is Over\n\n> **TL;DR:** talk instead\n\nI hate typing so I talk instead.')
+    const m = voiceMatch(
+      'I hate typing so I talk instead',
+      '## Typing Is Over\n\n> **TL;DR:** talk instead\n\nI hate typing so I talk instead.',
+    )
     expect(m.score).toBe(100)
     expect(m.newWords).toEqual(['over'])
   })
@@ -40,9 +43,7 @@ describe('AI-isms', () => {
   })
 
   it('fixes tells and tidies the sentence', () => {
-    expect(fixAiIsms("It's worth noting that we utilize Whisper. Moreover, it is seamless.")).toBe(
-      'We use Whisper. Also, it is smooth.',
-    )
+    expect(fixAiIsms("It's worth noting that we utilize Whisper. Moreover, it is seamless.")).toBe('We use Whisper. Also, it is smooth.')
     expect(fixAiIsms('In conclusion, it works.')).toBe('It works.')
   })
 
@@ -67,6 +68,11 @@ describe('changes', () => {
   it('marks removed fillers and added punctuation', () => {
     const parts = changes('um I love it', 'I love it.')
     expect(parts.some((p) => p.removed && p.value.includes('um'))).toBe(true)
-    expect(parts.filter((p) => !p.added && !p.removed).map((p) => p.value.trim()).join(' ')).toContain('love')
+    expect(
+      parts
+        .filter((p) => !p.added && !p.removed)
+        .map((p) => p.value.trim())
+        .join(' '),
+    ).toContain('love')
   })
 })

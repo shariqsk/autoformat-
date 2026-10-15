@@ -27,9 +27,9 @@ describe('readLines', () => {
 
 describe('generateWithOllama', () => {
   it('streams NDJSON chat chunks', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(streamOf('{"message":{"content":"Hel"}}\n{"message":{"content":"lo"}}\n', '{"done":true}\n')),
-    )
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(streamOf('{"message":{"content":"Hel"}}\n{"message":{"content":"lo"}}\n', '{"done":true}\n')))
     vi.stubGlobal('fetch', fetchMock)
     const a = args()
     const out = await generateWithOllama({ baseUrl: 'http://localhost:11434/', model: 'llama3.2' }, a)
@@ -47,14 +47,16 @@ describe('generateWithOllama', () => {
 
 describe('generateWithOpenAi', () => {
   it('streams SSE deltas and sends the bearer token', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(
-        streamOf(
-          'data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n',
-          'data: {"choices":[{"delta":{"content":" there"}}]}\n\ndata: [DONE]\n\n',
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          streamOf(
+            'data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n',
+            'data: {"choices":[{"delta":{"content":" there"}}]}\n\ndata: [DONE]\n\n',
+          ),
         ),
-      ),
-    )
+      )
     vi.stubGlobal('fetch', fetchMock)
     const out = await generateWithOpenAi({ baseUrl: 'https://api.example.com/v1', apiKey: 'sk-test', model: 'm' }, args())
     expect(out).toBe('Hi there')

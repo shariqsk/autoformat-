@@ -39,7 +39,10 @@ export function clauseHead(sentence: string): string | null {
 
 /** Section heading: a short opening sentence if there is one, else the chunk's key phrase. */
 function headingFor(chunk: string, corpus: string, used: Set<string>): string {
-  const first = (chunk.split(/(?<=[.!?])\s+/)[0] ?? '').replace(/^(?:and|but|so|also|then|now|plus|oh|finally|first|firstly|next|lastly)\b,?\s+/i, '')
+  const first = (chunk.split(/(?<=[.!?])\s+/)[0] ?? '').replace(
+    /^(?:and|but|so|also|then|now|plus|oh|finally|first|firstly|next|lastly)\b,?\s+/i,
+    '',
+  )
   const n = wordCount(first)
   // A short statement or question the speaker opened with makes the most natural heading.
   if (n >= 2 && n <= 7 && /[.?]$/.test(first)) return titleCase(capitalize(first.replace(/\.$/, '')))
@@ -71,7 +74,10 @@ export function deriveTitle(paragraphs: Paragraphs): string {
   const sentences = paragraphs.flat()
   for (const s of sentences.slice(0, 4)) {
     if (TITLE_LEADS.test(s)) {
-      const topic = s.replace(TITLE_LEADS, '').replace(/[.!?]+$/, '').split(/,|\band\s+(?:how|why)\b/)[0]
+      const topic = s
+        .replace(TITLE_LEADS, '')
+        .replace(/[.!?]+$/, '')
+        .split(/,|\band\s+(?:how|why)\b/)[0]
       if (wordCount(topic) >= 1 && wordCount(topic) <= 10) return titleCase(capitalize(topic))
     }
   }
@@ -179,7 +185,7 @@ function thread(paragraphs: Paragraphs): string {
   const posts: string[] = []
   let current = ''
   for (const s of paragraphs.flat()) {
-    const pieces = s.length > LIMIT ? s.match(new RegExp(`.{1,${LIMIT}}(?:\\s|$)`, 'g')) ?? [s] : [s]
+    const pieces = s.length > LIMIT ? (s.match(new RegExp(`.{1,${LIMIT}}(?:\\s|$)`, 'g')) ?? [s]) : [s]
     for (const piece of pieces.map((p) => p.trim())) {
       if (current && `${current} ${piece}`.length > LIMIT) {
         posts.push(current)

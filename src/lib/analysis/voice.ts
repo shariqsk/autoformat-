@@ -2,7 +2,11 @@ import { diffArrays, diffWords } from 'diff'
 import { stripMarkdown } from '../format/text'
 import { AI_ISMS } from './aiisms'
 
-const tokens = (text: string) => stripMarkdown(text).toLowerCase().replace(/[’]/g, "'").match(/[a-z0-9]+(?:'[a-z]+)?/g) ?? []
+const tokens = (text: string) =>
+  stripMarkdown(text)
+    .toLowerCase()
+    .replace(/[’]/g, "'")
+    .match(/[a-z0-9]+(?:'[a-z]+)?/g) ?? []
 
 export interface VoiceMatch {
   /** 0–100: share of the body prose that is the speaker's own words, in their order. */
@@ -66,7 +70,8 @@ export function findAiIsms(text: string): AiIsmHit[] {
   // A single em dash is fine; a page full of them is a tell.
   const dashes = [...text.matchAll(/\s?—\s?/g)]
   if (dashes.length >= 3)
-    for (const d of dashes) hits.push({ start: d.index, end: d.index + d[0].length, text: d[0], fix: ', ', why: 'Em dashes everywhere read as AI' })
+    for (const d of dashes)
+      hits.push({ start: d.index, end: d.index + d[0].length, text: d[0], fix: ', ', why: 'Em dashes everywhere read as AI' })
   hits.sort((a, b) => a.start - b.start || b.end - a.end)
   return hits.filter((h, i) => !hits.slice(0, i).some((p) => p.start <= h.start && h.start < p.end))
 }
@@ -101,7 +106,10 @@ export interface Readability {
 function syllables(word: string): number {
   const w = word.toLowerCase().replace(/[^a-z]/g, '')
   if (w.length <= 3) return 1
-  const groups = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '').match(/[aeiouy]{1,2}/g)
+  const groups = w
+    .replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '')
+    .replace(/^y/, '')
+    .match(/[aeiouy]{1,2}/g)
   return Math.max(1, groups?.length ?? 1)
 }
 
@@ -125,7 +133,7 @@ export interface DiffPart {
 
 /** Word-level changes from what was said to what was written, ignoring case. */
 export function changes(transcript: string, output: string): DiffPart[] {
-  return diffWords(transcript.replace(/\s+/g, ' ').trim(), stripMarkdown(output, { upperHeadings: false }).replace(/\s+/g, ' ').trim(), { ignoreCase: true }).map(
-    (p) => ({ value: p.value, added: p.added, removed: p.removed }),
-  )
+  return diffWords(transcript.replace(/\s+/g, ' ').trim(), stripMarkdown(output, { upperHeadings: false }).replace(/\s+/g, ' ').trim(), {
+    ignoreCase: true,
+  }).map((p) => ({ value: p.value, added: p.added, removed: p.removed }))
 }

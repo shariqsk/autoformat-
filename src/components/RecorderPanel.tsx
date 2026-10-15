@@ -124,7 +124,13 @@ export function RecorderPanel({
       setPhase('recording')
     } catch (err) {
       const denied = err instanceof DOMException && (err.name === 'NotAllowedError' || err.name === 'SecurityError')
-      onError(denied ? 'Microphone access was blocked. Allow it in your browser and try again.' : err instanceof Error ? err.message : String(err))
+      onError(
+        denied
+          ? 'Microphone access was blocked. Allow it in your browser and try again.'
+          : err instanceof Error
+            ? err.message
+            : String(err),
+      )
       whisper.current = null
       void recorder.stop()
     }
@@ -189,7 +195,9 @@ export function RecorderPanel({
             {
               value: 'webspeech',
               label: 'Browser',
-              title: isWebSpeechSupported() ? "Your browser's speech service (Chrome sends audio to Google)" : 'Not supported in this browser',
+              title: isWebSpeechSupported()
+                ? "Your browser's speech service (Chrome sends audio to Google)"
+                : 'Not supported in this browser',
             },
           ]}
         />
@@ -209,7 +217,10 @@ export function RecorderPanel({
           >
             {recording && <span className="absolute inset-0 animate-ping rounded-full bg-accent/20 [animation-duration:2s]" />}
             <span
-              className={cx('bg-accent transition-all duration-200', recording ? 'size-5 rounded-[5px]' : 'size-9 rounded-full group-hover:size-10')}
+              className={cx(
+                'bg-accent transition-all duration-200',
+                recording ? 'size-5 rounded-[5px]' : 'size-9 rounded-full group-hover:size-10',
+              )}
             />
           </button>
 
@@ -239,7 +250,12 @@ export function RecorderPanel({
                 <Button variant="ghost" size="sm" onClick={() => fileInput.current?.click()} title="Transcribe an audio or video file">
                   <FileAudio className="size-3.5" /> Upload
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => onTranscriptChange(() => SAMPLE_TRANSCRIPT)} title="Load an example ramble">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onTranscriptChange(() => SAMPLE_TRANSCRIPT)}
+                  title="Load an example ramble"
+                >
                   <Sparkles className="size-3.5" /> Sample
                 </Button>
               </>
@@ -253,8 +269,8 @@ export function RecorderPanel({
             {loading && (
               <p className="text-[11px] text-ink-3">
                 Downloading {model.label}
-                {loading.totalBytes ? ` · ${megabytes(loading.loadedBytes)} of ${megabytes(loading.totalBytes)}` : ''}. One time only, then it
-                lives in your browser.
+                {loading.totalBytes ? ` · ${megabytes(loading.loadedBytes)} of ${megabytes(loading.totalBytes)}` : ''}. One time only, then
+                it lives in your browser.
               </p>
             )}
           </div>

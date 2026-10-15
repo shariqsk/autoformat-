@@ -36,7 +36,9 @@ export async function generateWithOpenAi(settings: EngineSettings['openai'], arg
     })
   } catch (err) {
     if (args.signal.aborted) throw err
-    throw new Error(`Couldn't reach ${settings.baseUrl}. Check the URL, that the server is running, and that it allows browser (CORS) requests.`)
+    throw new Error(
+      `Couldn't reach ${settings.baseUrl}. Check the URL, that the server is running, and that it allows browser (CORS) requests.`,
+    )
   }
   if (!res.ok || !res.body) throw await errorFromResponse(res, 'Endpoint')
 

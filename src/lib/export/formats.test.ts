@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import type { FormattedDoc } from '../format/types'
-import { EXPORT_FORMATS, exportFilename, exportFormatById, toAgentBrief, toHtmlFragment, toHtmlPage, toJson, toMarkdown, toPlainText } from './formats'
+import {
+  EXPORT_FORMATS,
+  exportFilename,
+  exportFormatById,
+  toAgentBrief,
+  toHtmlFragment,
+  toHtmlPage,
+  toJson,
+  toMarkdown,
+  toPlainText,
+} from './formats'
 
 const doc: FormattedDoc = {
   title: 'Talking Is "the New" Typing',

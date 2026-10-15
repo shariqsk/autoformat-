@@ -50,7 +50,7 @@ describe('formatLocally', () => {
   it('swaps slang in formal mode but keeps contractions and sentences', () => {
     const doc = formatLocally(TRANSCRIPT, opts({ tone: 'formal' }), { now: NOW })
     expect(doc.body).not.toMatch(/\b(bro|lol|kinda|bucks)\b/i)
-    expect(doc.body).toContain("I used to pay twenty dollars a month")
+    expect(doc.body).toContain('I used to pay twenty dollars a month')
     expect(doc.body).toMatch(/\b(?:isn't|they've)\b/)
   })
 
@@ -81,7 +81,8 @@ describe('formatLocally', () => {
 
 describe('deriveTitle', () => {
   it('falls back to keywords when no sentence fits', () => {
-    const long = 'Whisper models transcribe speech locally and the transcription quality of whisper models keeps improving every single release cycle.'
+    const long =
+      'Whisper models transcribe speech locally and the transcription quality of whisper models keeps improving every single release cycle.'
     expect(deriveTitle([[long]])).toMatch(/^Thoughts on /)
   })
 })

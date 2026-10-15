@@ -33,7 +33,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '📝',
     blurb: 'Hook intro, H2 sections, clean wrap-up.',
     guide:
-      'A classic blog post. Open with the speaker\'s own opening as the intro. Group what they said into sections with "##" headings (use as many as the material naturally has, often 2–4). Short paragraphs. End where the speaker ended; don\'t add a conclusion they didn\'t give.',
+      "A classic blog post. Open with the speaker's own opening as the intro. Group what they said into sections with \"##\" headings (use as many as the material naturally has, often 2–4). Short paragraphs. End where the speaker ended; don't add a conclusion they didn't give.",
   },
   {
     id: 'listicle',
@@ -89,7 +89,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '💼',
     blurb: 'Hook line, airy one-liners, hashtags.',
     guide:
-      'A LinkedIn post. The speaker\'s strongest line first as the hook, then short one- or two-sentence paragraphs separated by blank lines. If they asked the audience something, end with it. 3–5 hashtags on the last line.',
+      "A LinkedIn post. The speaker's strongest line first as the hook, then short one- or two-sentence paragraphs separated by blank lines. If they asked the audience something, end with it. 3–5 hashtags on the last line.",
   },
   {
     id: 'notes',
@@ -104,8 +104,7 @@ export const LAYOUTS: LayoutDef[] = [
     label: 'Journal entry',
     emoji: '📔',
     blurb: 'Personal, first-person, lightly tidied.',
-    guide:
-      'A personal journal entry written in the first person. Plain paragraphs, no headings, keep it intimate and reflective.',
+    guide: 'A personal journal entry written in the first person. Plain paragraphs, no headings, keep it intimate and reflective.',
   },
 ]
 
@@ -157,7 +156,12 @@ export function normalizeToneId(id: string): ToneId {
 }
 
 export const LENGTHS: LengthDef[] = [
-  { id: 'concise', label: 'Tight', guide: 'Cut tangents, asides and repetition, aiming for roughly half the length. What remains should still be the speaker\'s own sentences.' },
+  {
+    id: 'concise',
+    label: 'Tight',
+    guide:
+      "Cut tangents, asides and repetition, aiming for roughly half the length. What remains should still be the speaker's own sentences.",
+  },
   { id: 'balanced', label: 'Balanced', guide: 'Keep everything of substance; remove only noise and repetition.' },
   { id: 'detailed', label: 'Everything', guide: 'Keep every point, aside and example the speaker made, in their order.' },
 ]

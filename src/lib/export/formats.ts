@@ -56,9 +56,7 @@ export function escapeHtml(text: string): string {
 
 export function toHtmlPage(doc: FormattedDoc, ctx: ExportContext): string {
   const title = escapeHtml(doc.title || 'Untitled')
-  const tags = doc.tags.length
-    ? `\n    <ul class="tags">${doc.tags.map((t) => `<li>#${escapeHtml(t)}</li>`).join('')}</ul>`
-    : ''
+  const tags = doc.tags.length ? `\n    <ul class="tags">${doc.tags.map((t) => `<li>#${escapeHtml(t)}</li>`).join('')}</ul>` : ''
   return `<!doctype html>
 <html lang="en">
   <head>

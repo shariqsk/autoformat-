@@ -15,10 +15,7 @@ function matchCase(source: string, replacement: string): string {
   return replacement
 }
 
-const swap = (word: string, replacement: string): Rule => [
-  new RegExp(`\\b${word}\\b`, 'gi'),
-  (m: string) => matchCase(m, replacement),
-]
+const swap = (word: string, replacement: string): Rule => [new RegExp(`\\b${word}\\b`, 'gi'), (m: string) => matchCase(m, replacement)]
 
 // Pure disfluencies: always removed, even in verbatim mode.
 const FILLER_SOUNDS: Rule[] = [
@@ -32,7 +29,10 @@ const FILLER_SOUNDS: Rule[] = [
 const VERBAL_TICS: Rule[] = [
   [/(^|[.!?]\s+)(?:(?:okay|ok|alright|right|yeah|well),|(?:so|okay|yeah) (?:yeah|so),?)\s+(?=\w)/gi, '$1'],
   [/,?\s*\b(?:so yeah|and yeah|yeah so|but yeah)\b[,.]?/gi, '.'],
-  [/(?<!\b(?:do|did|don't|if|what|as|you|we|they|I)\s+)\byou know\b(?!\s+(?:what|that|how|why|who|when|where|the|a|it|him|her|them|this|about))[,]?\s*/gi, ''],
+  [
+    /(?<!\b(?:do|did|don't|if|what|as|you|we|they|I)\s+)\byou know\b(?!\s+(?:what|that|how|why|who|when|where|the|a|it|him|her|them|this|about))[,]?\s*/gi,
+    '',
+  ],
   [/(^|[.!?,]\s*)I mean,\s*/g, '$1'],
   [/,\s*like,/gi, ','],
   [/(^|[.!?]\s+)like,\s*/gi, '$1'],
@@ -113,10 +113,12 @@ export interface Replacement {
 
 /** Apply the user's dictionary of fixes (e.g. "clawed" → "Claude"), matching whole words case-insensitively. */
 export function applyReplacements(text: string, replacements: Replacement[]): string {
-  return replacements
-    .filter((r) => r.from.trim())
-    // Lookarounds instead of \b so entries like "c++" or "node.js" match too.
-    .reduce((acc, r) => acc.replace(new RegExp(`(?<!\\w)${escapeRe(r.from.trim())}(?!\\w)`, 'gi'), r.to), text)
+  return (
+    replacements
+      .filter((r) => r.from.trim())
+      // Lookarounds instead of \b so entries like "c++" or "node.js" match too.
+      .reduce((acc, r) => acc.replace(new RegExp(`(?<!\\w)${escapeRe(r.from.trim())}(?!\\w)`, 'gi'), r.to), text)
+  )
 }
 
 /** Remove disfluencies and adjust register according to strictness. Returns a single string. */
@@ -207,7 +209,8 @@ export function splitSentences(text: string): string[] {
   return sentences.map((s) => s.trim()).filter(Boolean)
 }
 
-const QUESTION_START = /^(?:what|why|how|when|where|who|which|is|are|was|were|do|does|did|can|could|should|would|will|have|has|isn't|aren't|don't|doesn't)\b/i
+const QUESTION_START =
+  /^(?:what|why|how|when|where|who|which|is|are|was|were|do|does|did|can|could|should|would|will|have|has|isn't|aren't|don't|doesn't)\b/i
 const JUNK_SENTENCE = /^(?:yeah|yes|okay|ok|so|anyway|anyways|right|alright|um|uh|and|but|like|cool|nice)[.!?]?$/i
 
 export function polishSentence(sentence: string, strictness: Strictness): string | null {
@@ -246,7 +249,7 @@ const PROPER_CASE: Record<string, string> = Object.fromEntries(
 )
 
 function fixCasing(s: string): string {
-  return s.replace(/\b[a-z]+\b/g, (w) => (w === 'ok' ? w : PROPER_CASE[w] ?? w))
+  return s.replace(/\b[a-z]+\b/g, (w) => (w === 'ok' ? w : (PROPER_CASE[w] ?? w)))
 }
 
 const TOPIC_SHIFT =
@@ -279,7 +282,10 @@ export function toParagraphs(sentences: string[], targetWords = 70): string[][] 
 /** Full offline cleanup pipeline: raw transcript in, paragraphs of polished sentences out. */
 export function cleanTranscript(raw: string, strictness: Strictness, keep: string[] = []): string[][] {
   // Respect paragraph breaks the user typed or pasted.
-  const blocks = raw.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean)
+  const blocks = raw
+    .split(/\n\s*\n/)
+    .map((b) => b.trim())
+    .filter(Boolean)
   const result: string[][] = []
   for (const block of blocks) {
     const scrubbed = insertSentenceBreaks(scrub(block, strictness, keep))

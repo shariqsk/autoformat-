@@ -304,7 +304,12 @@ export default function App() {
           <div key={t.id} className="flex animate-rise items-start gap-3 rounded-2xl bg-ink p-3.5 pr-3 text-sm text-paper shadow-sheet">
             <AlertCircle className="mt-0.5 size-4 shrink-0 text-accent" />
             <p className="flex-1 leading-snug">{t.message}</p>
-            <button type="button" onClick={() => setToasts((all) => all.filter((x) => x.id !== t.id))} aria-label="Dismiss" className="opacity-60 hover:opacity-100">
+            <button
+              type="button"
+              onClick={() => setToasts((all) => all.filter((x) => x.id !== t.id))}
+              aria-label="Dismiss"
+              className="opacity-60 hover:opacity-100"
+            >
               <X className="size-4" />
             </button>
           </div>

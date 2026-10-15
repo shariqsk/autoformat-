@@ -117,10 +117,17 @@ export function StylePanel({
                   aria-pressed={active}
                   className={cx(
                     'group flex flex-col gap-1.5 rounded-xl border p-2 text-left transition-all',
-                    active ? 'border-ink bg-paper shadow-lift' : 'border-rule hover:-translate-y-0.5 hover:border-rule-strong hover:bg-paper/60',
+                    active
+                      ? 'border-ink bg-paper shadow-lift'
+                      : 'border-rule hover:-translate-y-0.5 hover:border-rule-strong hover:bg-paper/60',
                   )}
                 >
-                  <span className={cx('rounded-lg p-1.5 transition-colors', active ? 'bg-well text-ink' : 'bg-well/60 text-ink-3 group-hover:text-ink-2')}>
+                  <span
+                    className={cx(
+                      'rounded-lg p-1.5 transition-colors',
+                      active ? 'bg-well text-ink' : 'bg-well/60 text-ink-3 group-hover:text-ink-2',
+                    )}
+                  >
                     <LayoutThumb layout={layout.id} className="h-auto w-full" />
                   </span>
                   <span className={cx('px-0.5 text-xs font-medium', active ? 'text-ink' : 'text-ink-2')}>{layout.label}</span>
@@ -164,7 +171,10 @@ export function StylePanel({
                       <span className={cx('size-2 rounded-full', active ? 'bg-accent' : 'bg-transparent')} />
                     </span>
                     <span
-                      className={cx('text-center text-[13px] leading-tight font-medium', active ? 'text-ink' : 'text-ink-3 group-hover:text-ink-2')}
+                      className={cx(
+                        'text-center text-[13px] leading-tight font-medium',
+                        active ? 'text-ink' : 'text-ink-3 group-hover:text-ink-2',
+                      )}
                     >
                       {t.label}
                     </span>
@@ -228,7 +238,7 @@ export function StylePanel({
                 onClick={() => onEngineChange(e.id)}
                 aria-pressed={e.id === engine}
                 className={cx(
-                  'inline-flex h-8 items-center gap-2 rounded-full px-3 text-[13px] font-medium ring-1 ring-inset transition-colors',
+                  'inline-flex h-8 items-center gap-2 rounded-full px-3 text-[13px] font-medium ring-1 transition-colors ring-inset',
                   e.id === engine ? 'bg-ink text-paper ring-ink' : 'text-ink-2 ring-rule-strong hover:bg-well',
                 )}
               >
@@ -236,7 +246,14 @@ export function StylePanel({
                 {e.label}
               </button>
             ))}
-            <Button variant="ghost" size="sm" onClick={onOpenSettings} aria-label="Editor settings" title="Editor settings" className="size-8 px-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onOpenSettings}
+              aria-label="Editor settings"
+              title="Editor settings"
+              className="size-8 px-0"
+            >
               <Settings2 className="size-4" />
             </Button>
           </div>

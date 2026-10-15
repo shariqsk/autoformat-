@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { applyReplacements, cleanTranscript, insertSentenceBreaks, polishSentence, scrub, splitSentences, stripLeadingTics } from './cleanup'
+import {
+  applyReplacements,
+  cleanTranscript,
+  insertSentenceBreaks,
+  polishSentence,
+  scrub,
+  splitSentences,
+  stripLeadingTics,
+} from './cleanup'
 
 const flat = (raw: string, strictness: 0 | 1 | 2 | 3) => cleanTranscript(raw, strictness).flat().join(' ')
 
@@ -99,6 +107,11 @@ describe('applyReplacements', () => {
   })
 
   it('ignores empty entries and escapes regex characters', () => {
-    expect(applyReplacements('use c++ daily', [{ from: '', to: 'x' }, { from: 'c++', to: 'C++' }])).toBe('use C++ daily')
+    expect(
+      applyReplacements('use c++ daily', [
+        { from: '', to: 'x' },
+        { from: 'c++', to: 'C++' },
+      ]),
+    ).toBe('use C++ daily')
   })
 })

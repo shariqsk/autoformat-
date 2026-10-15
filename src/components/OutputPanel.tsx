@@ -80,7 +80,9 @@ function VoiceReport({ transcript, doc, onFix }: { transcript: string; doc: Form
       <div className="flex items-center gap-3 bg-paper/70 px-4 py-3">
         <div className="relative">
           <ScoreRing score={report.match.score} />
-          <span className="absolute inset-0 grid place-items-center font-mono text-[11px] font-semibold tabular-nums">{report.match.score}</span>
+          <span className="absolute inset-0 grid place-items-center font-mono text-[11px] font-semibold tabular-nums">
+            {report.match.score}
+          </span>
         </div>
         <div className="min-w-0">
           <p className="small-caps text-ink-3">Sounds like you</p>
@@ -97,7 +99,11 @@ function VoiceReport({ transcript, doc, onFix }: { transcript: string; doc: Form
         <p className="small-caps text-ink-3">AI tells</p>
         <p className="font-display text-xl leading-tight">{report.tells.length === 0 ? 'None found' : `${report.tells.length} flagged`}</p>
         {fixable > 0 ? (
-          <button type="button" onClick={onFix} className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-accent-deep hover:underline">
+          <button
+            type="button"
+            onClick={onFix}
+            className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-accent-deep hover:underline"
+          >
             <Eraser className="size-3" /> Fix {fixable} automatically
           </button>
         ) : (
@@ -181,8 +187,8 @@ function EmptyPage() {
       <Feather className="mb-5 size-8 text-rule-strong" strokeWidth={1.25} />
       <p className="font-display text-4xl leading-tight text-ink">A blank page, waiting.</p>
       <p className="mt-3 max-w-sm text-sm leading-relaxed text-ink-3">
-        Talk about anything. When you're done, hit <span className="text-ink-2">Format it</span> and your words show up here: cleaned up, laid out,
-        and still sounding like you.
+        Talk about anything. When you're done, hit <span className="text-ink-2">Format it</span> and your words show up here: cleaned up,
+        laid out, and still sounding like you.
       </p>
       <div className="mt-8 grid gap-2 text-left text-xs text-ink-3">
         {[
@@ -226,7 +232,10 @@ export function OutputPanel({
   const [format, setFormat] = useState<ExportFormatId>('markdown')
   const { copied, copy } = useCopy()
 
-  const html = useMemo(() => (doc ? DOMPurify.sanitize(toHtmlFragment({ ...doc, title: '', body: formatting ? doc.body : highlightAiIsms(doc.body) })) : ''), [doc, formatting])
+  const html = useMemo(
+    () => (doc ? DOMPurify.sanitize(toHtmlFragment({ ...doc, title: '', body: formatting ? doc.body : highlightAiIsms(doc.body) })) : ''),
+    [doc, formatting],
+  )
   const exportFormat = exportFormatById(format)
   const exported = useMemo(() => (doc && view === 'export' ? exportFormat.render(doc, ctx) : ''), [doc, ctx, view, exportFormat])
 
@@ -313,7 +322,9 @@ export function OutputPanel({
             </div>
           )}
 
-          {!formatting && view !== 'export' && <VoiceReport transcript={transcript} doc={doc} onFix={() => onDocChange({ ...doc, body: fixAiIsms(doc.body) })} />}
+          {!formatting && view !== 'export' && (
+            <VoiceReport transcript={transcript} doc={doc} onFix={() => onDocChange({ ...doc, body: fixAiIsms(doc.body) })} />
+          )}
 
           {view === 'read' && (
             <article className="animate-rise">
@@ -332,14 +343,14 @@ export function OutputPanel({
                   placeholder="A one-line description for previews and search"
                   aria-label="Description"
                   rows={1}
-                  className="field-sizing-content mt-2 w-full resize-none bg-transparent font-serif text-lg text-ink-2 italic placeholder:text-rule-strong focus:outline-none"
+                  className="mt-2 field-sizing-content w-full resize-none bg-transparent font-serif text-lg text-ink-2 italic placeholder:text-rule-strong focus:outline-none"
                 />
                 <TagsInput tags={doc.tags} onChange={(tags) => onDocChange({ ...doc, tags })} />
               </header>
               {layout === 'thread' ? (
                 <ThreadView body={doc.body} />
               ) : (
-                <div className="prose prose-desk max-w-none" dangerouslySetInnerHTML={{ __html: html }} />
+                <div className="prose-desk prose max-w-none" dangerouslySetInnerHTML={{ __html: html }} />
               )}
               {formatting && <span className="ml-0.5 inline-block h-5 w-0.5 animate-blink bg-accent align-middle" />}
             </article>

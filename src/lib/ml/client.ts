@@ -63,12 +63,7 @@ function run(request: JobRequest, callbacks: JobCallbacks, signal?: AbortSignal)
   })
 }
 
-export function transcribeInBrowser(
-  audio: Float32Array,
-  model: string,
-  callbacks: JobCallbacks = {},
-  language?: string,
-): Promise<string> {
+export function transcribeInBrowser(audio: Float32Array, model: string, callbacks: JobCallbacks = {}, language?: string): Promise<string> {
   return run({ type: 'transcribe', model, audio, language }, callbacks)
 }
 

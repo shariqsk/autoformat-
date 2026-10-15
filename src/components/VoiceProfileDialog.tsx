@@ -32,7 +32,12 @@ function KeepWords({ words, onChange }: { words: string[]; onChange: (w: string[
       {words.map((w) => (
         <span key={w} className="inline-flex items-center gap-1 rounded-full bg-ink py-1 pr-1 pl-3 text-[13px] text-paper">
           {w}
-          <button type="button" onClick={() => onChange(words.filter((x) => x !== w))} aria-label={`Remove ${w}`} className="rounded-full p-0.5 hover:bg-paper/20">
+          <button
+            type="button"
+            onClick={() => onChange(words.filter((x) => x !== w))}
+            aria-label={`Remove ${w}`}
+            className="rounded-full p-0.5 hover:bg-paper/20"
+          >
             <X className="size-3" />
           </button>
         </span>
@@ -134,7 +139,12 @@ export function VoiceProfileDialog({
             placeholder="Paste something you wrote…"
             className={cx(inputClass, 'min-h-40 resize-y font-serif text-[15px] leading-relaxed')}
           />
-          <p className={cx('text-right font-mono text-[11px]', profile.samples.length > MAX_SAMPLE_CHARS ? 'text-accent-deep' : 'text-ink-3')}>
+          <p
+            className={cx(
+              'text-right font-mono text-[11px]',
+              profile.samples.length > MAX_SAMPLE_CHARS ? 'text-accent-deep' : 'text-ink-3',
+            )}
+          >
             {profile.samples.length.toLocaleString()} / {MAX_SAMPLE_CHARS.toLocaleString()}
             {profile.samples.length > MAX_SAMPLE_CHARS && ' (the rest is ignored)'}
           </p>
