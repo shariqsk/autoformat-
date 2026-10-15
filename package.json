@@ -1,7 +1,7 @@
 {
   "name": "autoformat",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,9 +12,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write src",
-    "format:check": "prettier --check src"
+    "format:check": "prettier --check src",
+    "build:desktop": "tsc -b && vite build --mode desktop",
+    "desktop": "pnpm build:desktop && electron .",
+    "dist:desktop": "pnpm build:desktop && electron-builder"
   },
-  "dependencies": {
+  "devDependencies": {
     "@anthropic-ai/sdk": "^0.134.0",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/geist": "^5.3.0",
@@ -27,24 +30,24 @@
     "@fontsource/instrument-serif": "^5.3.0",
     "@fontsource/space-mono": "^5.3.0",
     "@huggingface/transformers": "^4.3.1",
-    "diff": "^9.0.0",
-    "dompurify": "^3.4.17",
-    "lucide-react": "^1.57.0",
-    "marked": "^18.1.1",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "tailwind-merge": "^3.7.0"
-  },
-  "devDependencies": {
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "diff": "^9.0.0",
+    "dompurify": "^3.4.17",
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3",
+    "lucide-react": "^1.57.0",
+    "marked": "^18.1.1",
     "oxlint": "^1.81.0",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
@@ -55,5 +58,95 @@
   },
   "packageManager": "pnpm@10.5.2",
   "description": "Talk it out, publish it clean: local speech-to-text that auto-formats rambling into blog-ready writing.",
-  "license": "MIT"
+  "license": "MIT",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron"
+    ]
+  },
+  "main": "electron/main.mjs",
+  "productName": "AutoFormat",
+  "author": {
+    "name": "Shariq",
+    "email": "00khanshariq@gmail.com"
+  },
+  "homepage": "https://github.com/shariqsk/autoformat-",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shariqsk/autoformat-.git"
+  },
+  "build": {
+    "appId": "dev.shariq.autoformat",
+    "productName": "AutoFormat",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "asar": true,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "shariqsk",
+        "repo": "autoformat-",
+        "releaseType": "draft"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "AutoFormat-mac-${arch}.${ext}",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "AutoFormat records your voice so it can transcribe it on your device."
+      },
+      "identity": null
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "AutoFormat-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Office",
+      "artifactName": "AutoFormat-linux-${arch}.${ext}",
+      "maintainer": "Shariq <00khanshariq@gmail.com>"
+    }
+  }
 }
