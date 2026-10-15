@@ -15,32 +15,28 @@ const PRIVACY = {
   cloud: { dot: 'bg-accent', text: 'Sent to the provider you choose' },
 } as const
 
-const MESSY = /\b(?:um+|uh+|like|you know|bro|dude|gonna|wanna|kinda|sorta|lol|yeah|basically|literally|fucking|stuff|i mean|so)\b/gi
 const DEFAULT_SAMPLE = "so um yeah bro honestly it's kinda crazy how good it's gotten, you know, like it's fucking wild lol"
 
-/** The messiest sentence of the user's own transcript makes the best demonstration. */
-function pickSample(transcript: string): string {
-  const candidates = transcript
-    .split(/(?<=[.!?])\s+|\n+/)
-    .map((s) => s.trim())
-    .filter((s) => {
-      const n = s.split(/\s+/).length
-      return n >= 6 && n <= 32
-    })
+/** The sentence of the user's own transcript that the formal level would change most makes the best demo. */
+function pickSample(transcript: string, keepWords: string[]): string {
   let best = ''
-  let bestScore = 1
-  for (const s of candidates) {
-    const score = (s.match(MESSY) ?? []).length
-    if (score > bestScore) {
+  let bestEdits = 1
+  for (const sentence of transcript.split(/(?<=[.!?])\s+|\n+/).slice(0, 200)) {
+    const s = sentence.trim()
+    const n = s.split(/\s+/).length
+    if (n < 6 || n > 32) continue
+    const after = cleanTranscript(s, 3, keepWords).flat().join(' ')
+    const edits = changes(s, after).filter((p) => p.removed || p.added).length
+    if (edits > bestEdits) {
       best = s
-      bestScore = score
+      bestEdits = edits
     }
   }
   return best || DEFAULT_SAMPLE
 }
 
 function VoiceProof({ transcript, tone, keepWords }: { transcript: string; tone: FormatOptions['tone']; keepWords: string[] }) {
-  const sample = useMemo(() => pickSample(transcript), [transcript])
+  const sample = useMemo(() => pickSample(transcript, keepWords), [transcript, keepWords])
   const { strictness, label } = toneById(tone)
   const parts = useMemo(() => {
     const after = cleanTranscript(sample, strictness, keepWords).flat().join(' ')
@@ -105,7 +101,7 @@ export function StylePanel({
     <Panel number="02" title="Shape">
       <div className="space-y-6">
         <Field label="Layout">
-          <div className="grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 sm:grid-cols-5">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
             {LAYOUTS.map((layout) => {
               const active = options.layout === layout.id
               return (
