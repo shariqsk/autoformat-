@@ -19,9 +19,14 @@ export class LiveWhisper {
   private readonly model: string
   private readonly language: string | undefined
   private readonly onText: (text: string) => void
-  private readonly callbacks: JobCallbacks
+  private readonly callbacks: JobCallbacks & { onError?: (err: Error) => void }
 
-  constructor(model: string, language: string | undefined, onText: (text: string) => void, callbacks: JobCallbacks = {}) {
+  constructor(
+    model: string,
+    language: string | undefined,
+    onText: (text: string) => void,
+    callbacks: JobCallbacks & { onError?: (err: Error) => void } = {},
+  ) {
     this.model = model
     this.language = language
     this.onText = onText
@@ -72,6 +77,8 @@ export class LiveWhisper {
         this.onText(this.text)
       } catch (err) {
         this.failed = err instanceof Error ? err : new Error(String(err))
+        // Tell the UI now rather than at Stop, so nobody talks for minutes into a broken pipeline.
+        this.callbacks.onError?.(this.failed)
       }
     })
   }

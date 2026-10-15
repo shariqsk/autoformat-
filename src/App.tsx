@@ -195,7 +195,7 @@ export default function App() {
       } else if (mod && e.key === '.') {
         e.preventDefault()
         toggleTheme()
-      } else if (!mod && !e.altKey && !isTyping(e.target) && !dialog) {
+      } else if (!mod && !e.altKey && !e.repeat && !isTyping(e.target) && !dialog) {
         if (e.key === 'r' || e.key === 'R') recorderRef.current?.toggle()
         else if (e.key === ' ' && recorderRef.current?.pauseResume()) e.preventDefault()
         else if (e.key === '?') setDialog('shortcuts')

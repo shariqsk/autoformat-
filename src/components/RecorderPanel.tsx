@@ -64,6 +64,9 @@ export function RecorderPanel({
   const live = useRef<LiveSession | null>(null)
   const whisper = useRef<LiveWhisper | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
+  const busy = useRef(false)
+  const stopping = useRef(false)
+  const reported = useRef(false)
 
   const model = WHISPER_MODELS.find((m) => m.id === settings.whisperModel) ?? WHISPER_MODELS[0]
   const webSpeech = settings.sttEngine === 'webspeech'
@@ -95,7 +98,10 @@ export function RecorderPanel({
   }
 
   async function start() {
-    if (phase !== 'idle') return
+    // Guard synchronously: phase only updates after the permission prompt resolves.
+    if (phase !== 'idle' || busy.current) return
+    busy.current = true
+    reported.current = false
     const base = transcript
     try {
       if (webSpeech) {
@@ -117,7 +123,14 @@ export function RecorderPanel({
           model.id,
           settings.language || undefined,
           (text) => onTranscriptChange(() => joinText(base, fix(text))),
-          callbacks,
+          {
+            ...callbacks,
+            onError: (err) => {
+              reported.current = true
+              onError(`Transcription stopped: ${err.message}`)
+              void stop()
+            },
+          },
         )
         whisper.current = session
         await recorder.start({ onPcm: (samples) => session.push(samples) })
@@ -134,10 +147,22 @@ export function RecorderPanel({
       )
       whisper.current = null
       void recorder.stop()
+    } finally {
+      busy.current = false
     }
   }
 
   async function stop() {
+    if (stopping.current) return
+    stopping.current = true
+    try {
+      await finishRecording()
+    } finally {
+      stopping.current = false
+    }
+  }
+
+  async function finishRecording() {
     const blob = await recorder.stop()
     if (blob) setAudioUrl(URL.createObjectURL(blob))
     if (live.current) {
@@ -155,7 +180,7 @@ export function RecorderPanel({
       const text = await session.finish()
       if (!text.trim()) onError("Whisper didn't catch any speech. Check your microphone and try again.")
     } catch (err) {
-      onError(err instanceof Error ? err.message : String(err))
+      if (!reported.current) onError(err instanceof Error ? err.message : String(err))
     } finally {
       setPhase('idle')
       setLoading(null)
@@ -357,7 +382,7 @@ export function RecorderPanel({
             </a>
           )}
           {transcript && (
-            <Button variant="danger" size="xs" onClick={() => onTranscriptChange(() => '')} disabled={recording}>
+            <Button variant="danger" size="xs" onClick={() => onTranscriptChange(() => '')} disabled={recording || phase !== 'idle'}>
               <Trash2 className="size-3.5" /> Clear
             </Button>
           )}
@@ -366,6 +391,8 @@ export function RecorderPanel({
           value={transcript}
           onChange={(e) => onTranscriptChange(() => e.target.value)}
           aria-label="Transcript"
+          // Live text replaces the transcript as it arrives, so typing is paused until it's done.
+          readOnly={recording || phase !== 'idle'}
           placeholder="Your words land here as you talk. You can also paste, type, or drop in an audio or text file."
           className={cx(inputClass, 'notepad mt-2 min-h-56 resize-y bg-paper/40 px-4 font-mono text-[13px] text-ink-2')}
           spellCheck={false}

@@ -38,6 +38,7 @@ export function useRecorder() {
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null)
   const media = useRef<Media | null>(null)
   const stateRef = useRef<RecorderState>('idle')
+  const starting = useRef(false)
   const timing = useRef({ startedAt: 0, accumulated: 0 })
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -60,44 +61,62 @@ export function useRecorder() {
   useEffect(() => cleanup, [cleanup])
 
   const start = useCallback(async ({ onPcm }: { onPcm?: (samples: Float32Array) => void } = {}) => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
-    })
-    const recorder = new MediaRecorder(stream)
-    const chunks: Blob[] = []
-    recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data)
+    // One recording at a time: a second click while the permission prompt is open is ignored.
+    if (media.current || starting.current) return
+    starting.current = true
+    let stream: MediaStream | null = null
+    let ctx: AudioContext | null = null
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
+      })
+      const recorder = new MediaRecorder(stream)
+      const chunks: Blob[] = []
+      recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data)
 
-    const ctx = new AudioContext()
-    const source = ctx.createMediaStreamSource(stream)
-    const node = ctx.createAnalyser()
-    node.fftSize = 2048
-    node.smoothingTimeConstant = 0.6
-    source.connect(node)
+      ctx = new AudioContext()
+      // Created after an await, so Safari/iOS may start it suspended (outside the user gesture).
+      if (ctx.state === 'suspended') await ctx.resume()
+      const source = ctx.createMediaStreamSource(stream)
+      const node = ctx.createAnalyser()
+      node.fftSize = 2048
+      node.smoothingTimeConstant = 0.6
+      source.connect(node)
 
-    if (onPcm) {
-      const url = URL.createObjectURL(new Blob([CAPTURE_WORKLET], { type: 'text/javascript' }))
-      try {
-        await ctx.audioWorklet.addModule(url)
-      } finally {
-        URL.revokeObjectURL(url)
+      if (onPcm) {
+        if (!ctx.audioWorklet) throw new Error('This browser cannot stream audio to Whisper live. Try Chrome, Edge or Safari 14.1+.')
+        const url = URL.createObjectURL(new Blob([CAPTURE_WORKLET], { type: 'text/javascript' }))
+        try {
+          await ctx.audioWorklet.addModule(url)
+        } finally {
+          URL.revokeObjectURL(url)
+        }
+        const capture = new AudioWorkletNode(ctx, 'pcm-capture')
+        const rate = ctx.sampleRate
+        capture.port.onmessage = (e: MessageEvent<Float32Array>) => {
+          if (stateRef.current === 'recording') onPcm(downsample(e.data, rate))
+        }
+        source.connect(capture)
       }
-      const capture = new AudioWorkletNode(ctx, 'pcm-capture')
-      capture.port.onmessage = (e: MessageEvent<Float32Array>) => {
-        if (stateRef.current === 'recording') onPcm(downsample(e.data, ctx.sampleRate))
-      }
-      source.connect(capture)
+
+      media.current = { recorder, stream, ctx, chunks }
+      timing.current = { startedAt: performance.now(), accumulated: 0 }
+      setElapsed(0)
+      timer.current = setInterval(() => {
+        const t = timing.current
+        setElapsed(t.accumulated + (t.startedAt ? (performance.now() - t.startedAt) / 1000 : 0))
+      }, 100)
+      recorder.start(1000)
+      setAnalyser(node)
+      setBoth('recording')
+    } catch (err) {
+      // Don't leave the microphone light on if anything after getUserMedia failed.
+      stream?.getTracks().forEach((t) => t.stop())
+      void ctx?.close()
+      throw err
+    } finally {
+      starting.current = false
     }
-
-    media.current = { recorder, stream, ctx, chunks }
-    timing.current = { startedAt: performance.now(), accumulated: 0 }
-    setElapsed(0)
-    timer.current = setInterval(() => {
-      const t = timing.current
-      setElapsed(t.accumulated + (t.startedAt ? (performance.now() - t.startedAt) / 1000 : 0))
-    }, 100)
-    recorder.start(1000)
-    setAnalyser(node)
-    setBoth('recording')
   }, [])
 
   const pause = useCallback(() => {
