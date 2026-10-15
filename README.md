@@ -4,6 +4,8 @@
 
 AutoFormat turns rambling voice notes into publish-ready writing. Hit record, talk the way you normally talk ("yeah bro, so basically…"), then pick a layout and a tone. You get a clean blog post, listicle, how-to, newsletter, thread or LinkedIn post that you can copy, download, or hand straight to a coding agent to publish.
 
+![AutoFormat: a rambling transcript on the left turned into a structured blog post on the right](docs/screenshot.png)
+
 Speech-to-text runs **on your device** using OpenAI's Whisper through [transformers.js](https://github.com/huggingface/transformers.js). It's free, needs no account, and your audio never leaves the browser. Models download once from Hugging Face and are then cached.
 
 ---
