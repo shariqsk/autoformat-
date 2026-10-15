@@ -131,6 +131,19 @@ body::before {
   color: var(--ink);
 }
 
+/* Tailwind's preflight resets buttons to the default arrow; anything clickable should show the hand. */
+button:not(:disabled),
+[role='button'],
+[role='radio'],
+[role='checkbox'],
+[role='tab'],
+a[href],
+summary,
+label[for],
+select:not(:disabled) {
+  cursor: pointer;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

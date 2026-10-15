@@ -43,7 +43,10 @@ function ModelPicker({ models, value, onChange }: { models: ModelOption[]; value
           className="tile px-3 py-2.5 text-left"
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium text-ink">{m.label}</span>
+            <span className="text-sm font-medium text-ink">
+              {m.label}
+              {m.detail && <span className="ml-1.5 text-xs font-normal text-ink-3">{m.detail}</span>}
+            </span>
             <span className="font-mono text-[11px] text-ink-3">{m.size}</span>
           </div>
           <div className="mt-1 flex items-center gap-2 text-xs text-ink-3">

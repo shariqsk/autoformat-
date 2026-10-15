@@ -60,14 +60,13 @@ function Nav({ draftCount, onOpen, loud }: Omit<MastheadProps, 'theme'> & { loud
 }
 
 const TICKER = [
-  'talk like you',
-  'post like you',
-  'no ums',
-  'no ai voice',
-  'slang stays',
+  'talk it out',
+  'post it clean',
+  'still sounds like you',
+  'private by default',
   'runs on your laptop',
   'free forever',
-  'yap → blog',
+  'voice note → blog post',
 ]
 
 /** Yap: a giant wordmark, a sticker, and a ticker tape of promises. */
@@ -85,7 +84,7 @@ function YapMasthead(props: MastheadProps) {
       </div>
       <div
         className="mt-5 overflow-hidden rounded-full border-(length:--bw) border-edge bg-pop-1 py-2 shadow-lift"
-        aria-label="Talk like you. Post like you. No ums, no AI voice."
+        aria-label="Talk it out, post it clean. Still sounds like you."
       >
         <div className="flex w-max animate-marquee gap-6 font-display text-[13px] text-ink uppercase" aria-hidden>
           {[...TICKER, ...TICKER, ...TICKER, ...TICKER].map((t, i) => (
