@@ -5,8 +5,8 @@ import { DEFAULT_OPTIONS } from './types'
 describe('buildPrompt', () => {
   it('embeds layout, tone and transcript', () => {
     const { system, user } = buildPrompt('  hello world  ', { ...DEFAULT_OPTIONS, layout: 'listicle', tone: 'formal' })
-    expect(system).toContain('Layout — Listicle')
-    expect(system).toContain('Editing level — Formal')
+    expect(system).toContain('Layout (Listicle)')
+    expect(system).toContain('Editing level (Formal)')
     expect(user).toContain('<transcript>\nhello world\n</transcript>')
   })
 

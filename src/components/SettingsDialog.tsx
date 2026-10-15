@@ -149,7 +149,7 @@ export function SettingsDialog({
               aria-label="Language"
               value={settings.language}
               onChange={(e) => onSettingsChange({ ...settings, language: e.target.value })}
-              placeholder="e.g. english, spanish — or en-US for live mode"
+              placeholder="e.g. english or spanish, or en-US for live mode"
               className={inputClass}
             />
           </Field>

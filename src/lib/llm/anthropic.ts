@@ -28,7 +28,7 @@ export async function generateWithClaude(settings: EngineSettings['anthropic'], 
     return message.content.flatMap((block) => (block.type === 'text' ? [block.text] : [])).join('')
   } catch (err) {
     if (err instanceof Anthropic.AuthenticationError) throw new Error('Anthropic rejected the API key. Check it in Settings.')
-    if (err instanceof Anthropic.RateLimitError) throw new Error('Anthropic rate limit hit — wait a moment and try again.')
+    if (err instanceof Anthropic.RateLimitError) throw new Error('Anthropic rate limit hit. Wait a moment and try again.')
     if (err instanceof Anthropic.NotFoundError) throw new Error(`Model "${settings.model}" isn't available on this API key.`)
     throw err
   }

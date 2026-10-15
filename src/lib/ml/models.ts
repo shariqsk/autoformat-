@@ -29,9 +29,9 @@ export const BROWSER_LLMS: ModelOption[] = [
     id: 'onnx-community/gemma-3-1b-it-ONNX',
     label: 'Gemma 3 · 1B',
     size: '~860 MB',
-    note: 'Recommended — faithful and fast',
+    note: 'Recommended: faithful and fast',
     needsGpu: true,
   },
-  { id: 'onnx-community/Qwen2.5-0.5B-Instruct', label: 'Qwen 2.5 · 0.5B', size: '~790 MB', note: 'Fast, but rough — may embellish' },
+  { id: 'onnx-community/Qwen2.5-0.5B-Instruct', label: 'Qwen 2.5 · 0.5B', size: '~790 MB', note: 'Fast, but rough; may embellish' },
   { id: 'onnx-community/Qwen2.5-1.5B-Instruct', label: 'Qwen 2.5 · 1.5B', size: '~1.8 GB', note: 'Larger, more verbose', needsGpu: true },
 ]

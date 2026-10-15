@@ -81,9 +81,9 @@ export function buildPrompt(
     ...VOICE_RULES.map((r) => `- ${r}`),
     keepLine ? `- ${keepLine}` : null,
     '',
-    `Editing level — ${tone.label}: ${tone.guide}`,
-    `Layout — ${layout.label}: ${layout.guide}`,
-    `Length — ${length.label}: ${length.guide}`,
+    `Editing level (${tone.label}): ${tone.guide}`,
+    `Layout (${layout.label}): ${layout.guide}`,
+    `Length (${length.label}): ${length.guide}`,
     options.includeSummary
       ? 'Begin the body with a one- or two-sentence summary in the speaker\'s voice, formatted as a blockquote starting with "**TL;DR:**".'
       : null,

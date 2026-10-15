@@ -123,7 +123,7 @@ Please add the post below to my blog.
 1. Follow the existing conventions in the repository (content folder, file naming, front matter fields, components). If the blog uses MDX, a CMS, or a database instead of Markdown files, adapt accordingly.
 2. Use the slug \`${slug}\` unless that clashes with an existing post.
 3. Map the metadata below onto whatever front matter the blog already uses. Don't invent fields that aren't used elsewhere.
-4. Keep the wording of the post exactly as written — only adjust formatting if the blog's renderer requires it.
+4. Keep the wording of the post exactly as written. Only adjust formatting if the blog's renderer requires it.
 5. Run the blog's build or lint step to make sure nothing breaks, then summarise what you changed.
 
 ## Metadata
@@ -150,7 +150,7 @@ export const EXPORT_FORMATS: ExportFormat[] = [
   {
     id: 'markdown',
     label: 'Markdown',
-    hint: 'With YAML front matter — drop into Astro, Next.js, Hugo, Jekyll…',
+    hint: 'With YAML front matter for Astro, Next.js, Hugo, Jekyll…',
     extension: 'md',
     mime: 'text/markdown',
     language: 'markdown',
@@ -177,7 +177,7 @@ export const EXPORT_FORMATS: ExportFormat[] = [
   {
     id: 'text',
     label: 'Plain text',
-    hint: 'No formatting — for emails, notes or social posts.',
+    hint: 'No formatting, for emails, notes or social posts.',
     extension: 'txt',
     mime: 'text/plain',
     language: 'text',
