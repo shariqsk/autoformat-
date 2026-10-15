@@ -15,6 +15,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.134.0",
     "@huggingface/transformers": "^4.3.1",
+    "diff": "^9.0.0",
     "dompurify": "^3.4.17",
     "lucide-react": "^1.57.0",
     "marked": "^18.1.1",
