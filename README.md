@@ -4,9 +4,9 @@
 
 AutoFormat is a dictation desk for people who'd rather talk than type. Hit record and ramble ("yeah bro, so basically…"). Whisper transcribes it **on your device** while you speak. Then pick a layout and how much polish you want, and you get a blog post, listicle, thread or newsletter that reads like you wrote it on a good day, not like a chatbot rewrote you.
 
-![AutoFormat: a rambling transcript on the left, a formatted post with a voice report on the right](docs/hero-light.png)
+![AutoFormat in the default Yap look: a rambling transcript on the left, a formatted post with a voice report on the right](docs/theme-yap.png)
 
-<p align="center"><img src="docs/hero-dark.png" width="49%" alt="Night desk (dark) theme" /> <img src="docs/changes-panel.png" width="49%" alt="The Changes view: every word that was cut or added" /></p>
+<p align="center"><img src="docs/theme-studio.png" width="49%" alt="The Studio look: dark, with an acid-lime glow" /> <img src="docs/changes-panel.png" width="49%" alt="The Changes view: every word that was cut or added" /></p>
 
 ---
 
@@ -68,10 +68,22 @@ Most "AI formatters" hand your words to a model and get back something that soun
 
   Copy from the Read view puts **rich HTML** on the clipboard, so formatting survives a paste into Google Docs, Notion, Medium or WordPress.
 
+**🎨 Four looks** (Style menu, or <kbd>⌘</kbd><kbd>.</kbd> to flip through them)
+
+| Look | Feel |
+| --- | --- |
+| **Yap** (default) | Loud and tactile: ink outlines, chunky offset shadows, colour-blocked sticker headings, a scrolling ticker. Unbounded + Bricolage Grotesque. |
+| **Studio** | A dark audio plugin with an acid-lime glow. Space Grotesk + Geist. |
+| **Desk** | Editorial paper and ink with one on-air red. Instrument Serif + Newsreader. |
+| **Night Desk** | The desk after dark. |
+
+Themes are more than palettes. Each one sets borders, radii, shadow style, press depth, typography and label treatment through tokens, restyles shared component classes, and has its own masthead.
+
+<p align="center"><img src="docs/style-picker.png" width="80%" alt="The style picker with live previews of each look" /></p>
+
 **✨ Everything else**
 
 - **Searchable drafts:** the last 50, stored only in your browser.
-- **Themes:** light "paper" and dark "night desk", following your OS until you choose.
 - **Installable PWA:** the app shell works offline, and models are cached after their first download.
 - **Keyboard first:**
 
@@ -82,7 +94,7 @@ Most "AI formatters" hand your words to a model and get back something that soun
 | <kbd>⌘</kbd><kbd>↵</kbd> | Format |
 | <kbd>⌘</kbd><kbd>⇧</kbd><kbd>C</kbd> | Copy |
 | <kbd>⌘</kbd><kbd>K</kbd> | Drafts |
-| <kbd>⌘</kbd><kbd>.</kbd> | Theme |
+| <kbd>⌘</kbd><kbd>.</kbd> | Change the look |
 | <kbd>?</kbd> | Help |
 
 <p align="center"><img src="docs/voice.png" width="70%" alt="Voice profile: words that stay, misheard-word fixes, writing samples" /></p>
@@ -146,7 +158,8 @@ Pick the editor, open **Settings**, choose a preset or paste a base URL and key,
 ```
 src/
 ├── App.tsx                    orchestration, shortcuts, theme, toasts
-├── components/                Talk / Shape / Page panels, dialogs, waveform, layout thumbnails
+├── components/                Talk / Shape / Page panels, mastheads, dialogs, waveform, layout thumbnails
+├── styles/                    themes.css (tokens per look), components.css (semantic classes)
 ├── hooks/                     useRecorder (worklet + analyser), useTheme, useSpeech, …
 ├── workers/ml.worker.ts       Whisper + in-browser LLMs
 └── lib/
