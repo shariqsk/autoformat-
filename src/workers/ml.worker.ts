@@ -58,10 +58,10 @@ const stopper = new InterruptableStoppingCriteria()
 async function getAsr(id: number, model: string) {
   if (asr?.model !== model) {
     const { device } = await detectAccel()
-    const dtype: Record<string, DataType> =
-      device === 'webgpu'
-        ? { encoder_model: 'fp32', decoder_model_merged: 'q4' }
-        : { encoder_model: 'q8', decoder_model_merged: 'q8' }
+    // The q8 decoder is both smaller than q4 for Whisper and accurate on WebGPU. Keep the encoder in
+    // full precision on the GPU, except for Large Turbo whose fp32 encoder alone is 2.5 GB.
+    const fullEncoder = device === 'webgpu' && !model.includes('large')
+    const dtype: Record<string, DataType> = { encoder_model: fullEncoder ? 'fp32' : 'q8', decoder_model_merged: 'q8' }
     asr = {
       model,
       instance: pipeline('automatic-speech-recognition', model, { device, dtype, progress_callback: progressReporter(id) }),
