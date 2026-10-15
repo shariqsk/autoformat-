@@ -263,6 +263,10 @@ export default function App() {
             formatting={formatting}
             loading={loading}
             copyRef={copyRef}
+            keepWords={profile.keepWords}
+            onKeepWord={(word) =>
+              setProfile((p) => (p.keepWords.some((w) => w.toLowerCase() === word) ? p : { ...p, keepWords: [...p.keepWords, word] }))
+            }
           />
         </div>
       </main>

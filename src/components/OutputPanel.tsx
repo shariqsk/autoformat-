@@ -149,10 +149,21 @@ function ThreadView({ body }: { body: string }) {
   )
 }
 
-function ChangesView({ transcript, doc }: { transcript: string; doc: FormattedDoc }) {
+function ChangesView({
+  transcript,
+  doc,
+  keepWords,
+  onKeep,
+}: {
+  transcript: string
+  doc: FormattedDoc
+  keepWords: string[]
+  onKeep: (word: string) => void
+}) {
   const parts = useMemo(() => changes(transcript, doc.body), [transcript, doc.body])
   const removed = parts.filter((p) => p.removed).reduce((n, p) => n + wordCount(p.value), 0)
   const added = parts.filter((p) => p.added).reduce((n, p) => n + wordCount(p.value), 0)
+  const kept = new Set(keepWords.map((w) => w.toLowerCase()))
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-ink-3">
@@ -160,13 +171,33 @@ function ChangesView({ transcript, doc }: { transcript: string; doc: FormattedDo
           <del>{removed} words cut</del>
         </Badge>
         <Badge tone="olive">{added} words added</Badge>
-        <span>From what you said to what's on the page.</span>
+        <span>Click a cut word to always keep it.</span>
       </div>
       <p className="font-serif text-[16px] leading-[1.9] text-ink-2">
         {parts.map((p, i) =>
           p.removed ? (
             <del key={i} className="bg-accent-wash/60 text-ink-3 decoration-accent/60">
-              {p.value}
+              {/* Each cut word is a button: one click adds it to the voice profile's keep-list. */}
+              {p.value.split(/(\s+)/).map((token, j) => {
+                const word = token.replace(/^[^\w']+|[^\w']+$/g, '')
+                if (!word) return token
+                const isKept = kept.has(word.toLowerCase())
+                return (
+                  <button
+                    key={j}
+                    type="button"
+                    disabled={isKept}
+                    onClick={() => onKeep(word.toLowerCase())}
+                    title={isKept ? `“${word}” is on your keep list. Format again to bring it back.` : `Always keep “${word}”`}
+                    className={cx(
+                      'cursor-pointer rounded-sm hover:bg-accent-wash hover:text-ink',
+                      isKept && 'cursor-default text-olive no-underline',
+                    )}
+                  >
+                    {token}
+                  </button>
+                )
+              })}
             </del>
           ) : p.added ? (
             <ins key={i} className="rounded-sm bg-olive-wash text-olive no-underline">
@@ -218,7 +249,11 @@ export function OutputPanel({
   formatting,
   loading,
   copyRef,
+  keepWords,
+  onKeepWord,
 }: {
+  keepWords: string[]
+  onKeepWord: (word: string) => void
   doc: FormattedDoc | null
   onDocChange: (doc: FormattedDoc) => void
   ctx: ExportContext
@@ -365,7 +400,7 @@ export function OutputPanel({
             />
           )}
 
-          {view === 'changes' && <ChangesView transcript={transcript} doc={doc} />}
+          {view === 'changes' && <ChangesView transcript={transcript} doc={doc} keepWords={keepWords} onKeep={onKeepWord} />}
 
           {view === 'export' && (
             <div className="flex flex-1 flex-col gap-3">
