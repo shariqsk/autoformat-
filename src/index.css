@@ -28,3 +28,12 @@ body {
 ::selection {
   background: rgb(139 92 246 / 0.4);
 }
+
+/* The typography plugin wraps blockquotes in curly quotes, which looks wrong on TL;DR callouts. */
+.prose blockquote p::before,
+.prose blockquote p::after {
+  content: none;
+}
+.prose blockquote {
+  font-style: normal;
+}
