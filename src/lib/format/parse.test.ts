@@ -42,4 +42,13 @@ describe('parseModelOutput', () => {
     expect(doc.title).toBe('')
     expect(doc.tags).toEqual([])
   })
+
+  it('strips chatty preambles and labelled or bolded titles from small models', () => {
+    const labelled = parseModelOutput("Here's the rewritten version of your transcript as a blog post:\n\n---\n\n**Title:** Why I Talk\n\nBody text that is long enough to count.", DEFAULT_OPTIONS)
+    expect(labelled.title).toBe('Why I Talk')
+    expect(labelled.body).toBe('Body text that is long enough to count.')
+    const bolded = parseModelOutput('Sure! Here it is:\n\n**Why I Stopped Typing**\n\nThe body.', DEFAULT_OPTIONS)
+    expect(bolded.title).toBe('Why I Stopped Typing')
+    expect(bolded.body).toBe('The body.')
+  })
 })

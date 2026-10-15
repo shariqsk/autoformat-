@@ -23,6 +23,8 @@ export function parseModelOutput(raw: string, options: FormatOptions): Formatted
   let text = raw.trim()
   // Reasoning models sometimes leak their scratchpad.
   text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
+  // Chatty preambles: "Here's the rewritten version as a blog post:" / "Sure! ...:"
+  text = text.replace(/^(?:here(?:'s| is)|sure|certainly|of course|okay)\b[^\n]*:\s*\n+/i, '').trim()
   const fenced = text.match(/^```(?:markdown|md|mdx)?\s*\n([\s\S]*?)\n```\s*$/i)
   if (fenced) text = fenced[1].trim()
 
@@ -46,6 +48,21 @@ export function parseModelOutput(raw: string, options: FormatOptions): Formatted
       }
     }
     text = text.slice(fm[0].length).trim()
+  }
+
+  // A bare horizontal rule left over after a stripped preamble.
+  text = text.replace(/^-{3,}\s*\n+/, '').trim()
+  // "**Title:** Something" or "Title: Something" instead of a heading.
+  const labelled = text.match(/^(?:\*\*)?title:?(?:\*\*)?:?\s*(.+)\n*/i)
+  if (labelled) {
+    if (!title) title = labelled[1].replace(/\*\*/g, '').trim()
+    text = text.slice(labelled[0].length).trim()
+  }
+  // Some models bold the title instead of using a heading.
+  const bolded = text.match(/^\*\*([^*\n]{3,120})\*\*\s*\n\n/)
+  if (bolded && !title) {
+    title = bolded[1].trim()
+    text = text.slice(bolded[0].length).trim()
   }
 
   const h1 = text.match(/^#\s+(.+)\n*/)
