@@ -2,49 +2,63 @@ export interface ModelOption {
   id: string
   /** Plain-language name shown first. */
   label: string
-  /** The technical name, for people who care. */
-  detail?: string
+  /** The model's real name, credited wherever it's offered. */
+  name: string
+  /** Who made it. */
+  maker: string
+  /** The original model's page. */
+  url: string
   size: string
   note: string
   /** Only practical with WebGPU acceleration. */
   needsGpu?: boolean
 }
 
-/** Whisper checkpoints converted to ONNX; downloaded once from Hugging Face and cached by the browser.
- *  Sizes are for WebGPU; the CPU (WASM) variants are smaller. */
+/** OpenAI's Whisper, as ONNX conversions by the Hugging Face community. Downloaded once and cached
+ *  by the browser. Sizes are for WebGPU; the CPU (WASM) variants are smaller. */
 export const WHISPER_MODELS: ModelOption[] = [
   {
     id: 'onnx-community/whisper-tiny.en',
     label: 'Quick',
-    detail: 'Whisper Tiny · English',
+    name: 'Whisper Tiny (English)',
+    maker: 'OpenAI',
+    url: 'https://huggingface.co/openai/whisper-tiny.en',
     size: '65 MB',
     note: 'Fastest, fine for quick notes',
   },
   {
     id: 'onnx-community/whisper-base.en',
     label: 'Balanced',
-    detail: 'Whisper Base · English',
+    name: 'Whisper Base (English)',
+    maker: 'OpenAI',
+    url: 'https://huggingface.co/openai/whisper-base.en',
     size: '135 MB',
     note: 'The best start for most laptops',
   },
   {
     id: 'onnx-community/whisper-small.en',
     label: 'Accurate',
-    detail: 'Whisper Small · English',
+    name: 'Whisper Small (English)',
+    maker: 'OpenAI',
+    url: 'https://huggingface.co/openai/whisper-small.en',
     size: '510 MB',
     note: 'Catches more words, a little slower',
   },
   {
     id: 'onnx-community/whisper-base',
     label: 'Any language',
-    detail: 'Whisper Base · 99 languages',
+    name: 'Whisper Base (99 languages)',
+    maker: 'OpenAI',
+    url: 'https://huggingface.co/openai/whisper-base',
     size: '135 MB',
     note: 'For speaking languages other than English',
   },
   {
     id: 'onnx-community/whisper-large-v3-turbo',
     label: 'Best quality',
-    detail: 'Whisper Large v3 Turbo',
+    name: 'Whisper Large v3 Turbo',
+    maker: 'OpenAI',
+    url: 'https://huggingface.co/openai/whisper-large-v3-turbo',
     size: '1.1 GB',
     note: 'Most accurate, any language',
     needsGpu: true,
@@ -55,11 +69,31 @@ export const WHISPER_MODELS: ModelOption[] = [
 export const BROWSER_LLMS: ModelOption[] = [
   {
     id: 'onnx-community/gemma-3-1b-it-ONNX',
-    label: 'Gemma 3 · 1B',
-    size: '~860 MB',
-    note: 'Recommended: faithful and fast',
+    label: 'Recommended',
+    name: 'Gemma 3 1B',
+    maker: 'Google',
+    url: 'https://huggingface.co/google/gemma-3-1b-it',
+    size: '860 MB',
+    note: 'Faithful and fast',
     needsGpu: true,
   },
-  { id: 'onnx-community/Qwen2.5-0.5B-Instruct', label: 'Qwen 2.5 · 0.5B', size: '~790 MB', note: 'Fast, but rough; may embellish' },
-  { id: 'onnx-community/Qwen2.5-1.5B-Instruct', label: 'Qwen 2.5 · 1.5B', size: '~1.8 GB', note: 'Larger, more verbose', needsGpu: true },
+  {
+    id: 'onnx-community/Qwen2.5-0.5B-Instruct',
+    label: 'Lightest',
+    name: 'Qwen 2.5 0.5B',
+    maker: 'Alibaba Qwen',
+    url: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct',
+    size: '790 MB',
+    note: 'Fast, but rough; may embellish',
+  },
+  {
+    id: 'onnx-community/Qwen2.5-1.5B-Instruct',
+    label: 'Larger',
+    name: 'Qwen 2.5 1.5B',
+    maker: 'Alibaba Qwen',
+    url: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct',
+    size: '1.8 GB',
+    note: 'More capable, more verbose',
+    needsGpu: true,
+  },
 ]

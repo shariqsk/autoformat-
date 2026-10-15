@@ -4,6 +4,7 @@ import { listOllamaModels } from '../lib/llm/ollama'
 import { listOpenAiModels } from '../lib/llm/openai'
 import { CLAUDE_MODELS, type EngineSettings } from '../lib/llm/types'
 import { hasWebGpu } from '../lib/ml/client'
+import { MODEL_CREDITS, SOFTWARE_CREDITS } from '../lib/credits'
 import { BROWSER_LLMS, WHISPER_MODELS, type ModelOption } from '../lib/ml/models'
 import type { AppSettings } from '../lib/settings'
 import { inputClass } from './classes'
@@ -43,11 +44,11 @@ function ModelPicker({ models, value, onChange }: { models: ModelOption[]; value
           className="tile px-3 py-2.5 text-left"
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium text-ink">
-              {m.label}
-              {m.detail && <span className="ml-1.5 text-xs font-normal text-ink-3">{m.detail}</span>}
-            </span>
+            <span className="text-sm font-medium text-ink">{m.label}</span>
             <span className="font-mono text-[11px] text-ink-3">{m.size}</span>
+          </div>
+          <div className="mt-0.5 text-xs text-ink-2">
+            {m.name} <span className="text-ink-3">by {m.maker}</span>
           </div>
           <div className="mt-1 flex items-center gap-2 text-xs text-ink-3">
             {m.note}
@@ -287,6 +288,39 @@ export function SettingsDialog({
           <KeyRound className="mt-0.5 size-3.5 shrink-0" />
           Settings and API keys are stored only in this browser's localStorage and are sent nowhere except the endpoint you configure.
         </p>
+
+        <Section
+          title="Built on"
+          description="AutoFormat stands on open models and open-source software. Thank you to everyone who made them."
+        >
+          {[
+            { heading: 'Models', items: MODEL_CREDITS },
+            { heading: 'Software & type', items: SOFTWARE_CREDITS },
+          ].map((group) => (
+            <div key={group.heading}>
+              <p className="label mb-2 text-ink-3">{group.heading}</p>
+              <ul className="divide-y divide-rule rounded-ctl border-(length:--bw) border-edge-ctl">
+                {group.items.map((c) => (
+                  <li key={c.name} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 px-3 py-2 text-xs">
+                    <span>
+                      <a
+                        href={c.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-semibold text-ink underline decoration-edge-ctl underline-offset-2 hover:decoration-ink"
+                      >
+                        {c.name}
+                      </a>{' '}
+                      <span className="text-ink-3">by {c.by}</span>
+                      <span className="block text-ink-3">{c.what}</span>
+                    </span>
+                    <span className="font-mono text-[10px] text-ink-3">{c.license}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </Section>
       </div>
     </Modal>
   )

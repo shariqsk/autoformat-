@@ -258,9 +258,38 @@ export default function App() {
       </main>
 
       <footer className="mx-auto max-w-[1440px] px-4 pb-10 sm:px-8">
-        <div className="border-t-(length:--bw) border-rule pt-4 text-xs leading-relaxed text-ink-3 sm:flex sm:justify-between">
-          <p>Speech by Whisper, on your device. Nothing leaves your browser unless you choose a cloud editor.</p>
-          <p>Press ⌘. to change the look.</p>
+        <div className="border-t-(length:--bw) border-rule pt-4 text-xs leading-relaxed text-ink-3 sm:flex sm:justify-between sm:gap-8">
+          <p>
+            Speech by{' '}
+            <a
+              href="https://github.com/openai/whisper"
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-edge-ctl underline-offset-2 hover:text-ink"
+            >
+              Whisper
+            </a>{' '}
+            from OpenAI, run on your device with{' '}
+            <a
+              href="https://github.com/huggingface/transformers.js"
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-edge-ctl underline-offset-2 hover:text-ink"
+            >
+              Transformers.js
+            </a>{' '}
+            by Hugging Face. In-browser writing by Google's Gemma and Alibaba's Qwen.
+          </p>
+          <p className="mt-1 sm:mt-0">
+            Nothing leaves your browser unless you choose a cloud editor ·{' '}
+            <button
+              type="button"
+              onClick={() => setDialog('settings')}
+              className="underline decoration-edge-ctl underline-offset-2 hover:text-ink"
+            >
+              All credits
+            </button>
+          </p>
         </div>
       </footer>
 
