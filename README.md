@@ -1,12 +1,49 @@
+<div align="center">
+
+<img src="docs/logo.png" width="96" alt="AutoFormat logo" />
+
 # AutoFormat
 
 **Talk the way you talk. Get back writing that still sounds like you.**
+
+[![CI](https://github.com/shariqsk/autoformat-/actions/workflows/ci.yml/badge.svg)](https://github.com/shariqsk/autoformat-/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/shariqsk/autoformat-?label=download&color=ff4a1c)](https://github.com/shariqsk/autoformat-/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-141210.svg)](LICENSE)
+
+[**Download**](#download) · [**Try it in your browser**](https://shariqsk.github.io/autoformat-/) · [Features](#features) · [Run from source](#run-from-source)
+
+</div>
 
 AutoFormat is a dictation desk for people who'd rather talk than type. Hit record and ramble ("yeah bro, so basically…"). Whisper transcribes it **on your device** while you speak. Then pick a layout and how much polish you want, and you get a blog post, listicle, thread or newsletter that reads like you wrote it on a good day, not like a chatbot rewrote you.
 
 ![AutoFormat in the default Yap look: a rambling transcript on the left, a formatted post with a voice report on the right](docs/theme-yap.png)
 
 <p align="center"><img src="docs/theme-studio.png" width="49%" alt="The Studio look: dark, with an acid-lime glow" /> <img src="docs/changes-panel.png" width="49%" alt="The Changes view: every word that was cut or added" /></p>
+
+## Download
+
+| Platform | Download | Notes |
+| --- | --- | --- |
+| **Windows** 10/11 | [**AutoFormat-Setup.exe**](https://github.com/shariqsk/autoformat-/releases/latest/download/AutoFormat-Setup.exe) | 64-bit installer |
+| **macOS** (Apple silicon) | [**AutoFormat-mac-arm64.dmg**](https://github.com/shariqsk/autoformat-/releases/latest/download/AutoFormat-mac-arm64.dmg) | M1 and newer |
+| **macOS** (Intel) | [**AutoFormat-mac-x64.dmg**](https://github.com/shariqsk/autoformat-/releases/latest/download/AutoFormat-mac-x64.dmg) | |
+| **Linux** | [**AppImage**](https://github.com/shariqsk/autoformat-/releases/latest/download/AutoFormat-linux-x86_64.AppImage) · [**.deb**](https://github.com/shariqsk/autoformat-/releases/latest/download/AutoFormat-linux-amd64.deb) | x64 |
+| **Web** | [**shariqsk.github.io/autoformat-**](https://shariqsk.github.io/autoformat-/) | Nothing to install; works offline once loaded, and can be installed as an app from the address bar |
+
+All versions and release notes are on the [releases page](https://github.com/shariqsk/autoformat-/releases).
+
+<details>
+<summary><b>First launch: "unidentified developer" / SmartScreen warnings</b></summary>
+
+The apps aren't code-signed yet, so your OS will ask before opening them the first time:
+
+- **Windows:** on the blue SmartScreen screen, click **More info → Run anyway**.
+- **macOS:** right-click the app in Applications and choose **Open**, then **Open** again. If macOS says the app is damaged, run `xattr -cr /Applications/AutoFormat.app` in Terminal.
+- **Linux (AppImage):** `chmod +x AutoFormat-linux-x86_64.AppImage`, then run it.
+
+The first time you record, AutoFormat downloads the Whisper speech model (~135 MB for the default). After that everything runs offline on your machine.
+
+</details>
 
 ---
 
@@ -99,7 +136,7 @@ Themes are more than palettes. Each one sets borders, radii, shadow style, press
 
 <p align="center"><img src="docs/voice.png" width="70%" alt="Voice profile: words that stay, misheard-word fixes, writing samples" /></p>
 
-## Quick start
+## Run from source
 
 ```bash
 pnpm install
@@ -107,6 +144,15 @@ pnpm dev        # http://localhost:5173
 ```
 
 Click **Sample** to see it work without a microphone, or press <kbd>R</kbd> and start talking. The first recording downloads the Whisper model (~135 MB for Base); after that it's instant and works offline.
+
+### Desktop app
+
+```bash
+pnpm desktop           # build and open the Electron app
+pnpm dist:desktop      # package an installer for your OS into release/
+```
+
+Releases are automated: push a tag like `v1.1.0` and GitHub Actions builds the Windows, macOS and Linux apps and publishes them to the releases page. The download links above always point at the latest release.
 
 ### Better rewriting, still free: Ollama
 
@@ -128,11 +174,12 @@ Pick the editor, open **Settings**, choose a preset or paste a base URL and key,
 | --- | --- |
 | `pnpm dev` | Dev server |
 | `pnpm build` | Type-check and build the static site (`dist/`), including the service worker |
+| `pnpm desktop` / `pnpm dist:desktop` | Run the Electron app / package installers into `release/` |
 | `pnpm preview` | Serve the production build |
 | `pnpm test` | Unit tests (Vitest) |
 | `pnpm typecheck` / `pnpm lint` / `pnpm format` | TypeScript, oxlint, Prettier (with Tailwind class sorting) |
 
-`dist/` is fully static: deploy it to Netlify, Vercel, Cloudflare Pages or GitHub Pages.
+`dist/` is fully static. Every push to `main` deploys it to GitHub Pages; it also works on Netlify, Vercel or Cloudflare Pages (set `BASE_PATH` if it's served from a sub-path).
 
 ## How it works
 
@@ -156,6 +203,7 @@ Pick the editor, open **Settings**, choose a preset or paste a base URL and key,
 ```
 
 ```
+electron/main.mjs              desktop shell (serves the app from app://, grants the mic)
 src/
 ├── App.tsx                    orchestration, shortcuts, theme, toasts
 ├── components/                Talk / Shape / Page panels, mastheads, dialogs, waveform, layout thumbnails
