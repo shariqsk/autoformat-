@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Talk the way you talk. Get back writing that still sounds like you. Private, on-device speech-to-text that formats your rambling into blog posts, threads and more." />
+    <meta name="theme-color" content="#fff1d6" />
+    <!-- Apply the saved look before first paint so there's no flash of the default theme. -->
+    <script>
+      try {
+        const t = localStorage.getItem('autoformat:style')
+        document.documentElement.dataset.theme = ['yap', 'studio', 'desk', 'desk-night'].includes(t) ? t : 'yap'
+      } catch {
+        document.documentElement.dataset.theme = 'yap'
+      }
+    </script>
+    <title>AutoFormat · talk it out, publish it clean</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
