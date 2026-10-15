@@ -81,6 +81,7 @@ export function StylePanel({
           <input
             value={options.instructions}
             onChange={(e) => set('instructions', e.target.value)}
+            aria-label="Extra instructions"
             placeholder='e.g. "audience is beginner devs", "end with a plug for my newsletter"'
             className={inputClass}
           />
@@ -98,7 +99,7 @@ export function StylePanel({
           }
         >
           <div className="flex gap-2">
-            <select value={engine} onChange={(e) => onEngineChange(e.target.value as EngineId)} className={cx(inputClass, 'flex-1')}>
+            <select value={engine} aria-label="Engine" onChange={(e) => onEngineChange(e.target.value as EngineId)} className={cx(inputClass, 'flex-1')}>
               {ENGINES.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.label}

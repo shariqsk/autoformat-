@@ -134,7 +134,7 @@ export function RecorderPanel({
       title="Talk"
       subtitle="Ramble freely — it gets cleaned up in step 2."
       actions={
-        <Button variant="ghost" size="sm" onClick={onOpenSettings} title="Speech settings">
+        <Button variant="ghost" size="sm" onClick={onOpenSettings} title="Speech settings" aria-label="Speech settings">
           <Settings2 className="size-4" />
         </Button>
       }
@@ -239,6 +239,7 @@ export function RecorderPanel({
         <textarea
           value={transcript}
           onChange={(e) => onTranscriptChange(() => e.target.value)}
+          aria-label="Transcript"
           placeholder="Your words show up here. You can also paste or type anything you want formatted."
           className={cx(inputClass, 'min-h-48 resize-y font-mono text-[13px] leading-relaxed')}
           spellCheck={false}

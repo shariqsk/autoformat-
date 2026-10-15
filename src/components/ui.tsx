@@ -109,6 +109,7 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={label}
         onClick={() => onChange(!checked)}
         className={cx(
           'relative h-5 w-9 rounded-full transition-colors',
@@ -149,10 +150,12 @@ export function ProgressBar({ value }: { value: number | null }) {
 
 export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
   return (
-    <label className="block space-y-1.5">
+    // A group, not a <label>: a label would forward clicks on its caption to the first control
+    // inside (e.g. silently selecting the first layout).
+    <div role="group" aria-label={label} className="space-y-1.5">
       <span className="block text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</span>
       <div>{children}</div>
       {hint && <span className="block text-xs text-zinc-500">{hint}</span>}
-    </label>
+    </div>
   )
 }
