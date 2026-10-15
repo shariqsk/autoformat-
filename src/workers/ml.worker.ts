@@ -116,7 +116,17 @@ async function generate(req: Extract<WorkerRequest, { type: 'generate' }>) {
       { role: 'system', content: req.system },
       { role: 'user', content: req.user },
     ],
-    { max_new_tokens: req.maxNewTokens, do_sample: false, repetition_penalty: 1.05, streamer, stopping_criteria: stopper },
+    {
+      max_new_tokens: req.maxNewTokens,
+      // Light sampling plus an n-gram block keeps small models out of repetition loops.
+      do_sample: true,
+      temperature: 0.4,
+      top_p: 0.9,
+      repetition_penalty: 1.1,
+      no_repeat_ngram_size: 8,
+      streamer,
+      stopping_criteria: stopper,
+    },
   )
   post({ id: req.id, type: 'result', text: full })
 }

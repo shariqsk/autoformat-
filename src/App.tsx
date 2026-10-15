@@ -9,7 +9,8 @@ import { Button } from './components/ui'
 import { usePersistentState } from './hooks/usePersistentState'
 import { formatLocally } from './lib/format/local'
 import { parseModelOutput } from './lib/format/parse'
-import { buildPrompt } from './lib/format/prompt'
+import { buildPrompt, precleanTranscript } from './lib/format/prompt'
+import { toneById } from './lib/format/styles'
 import { DEFAULT_OPTIONS, type FormattedDoc } from './lib/format/types'
 import { newEntryId, upsertHistory, type HistoryEntry } from './lib/history'
 import { generate } from './lib/llm'
@@ -65,7 +66,10 @@ export default function App() {
     abortRef.current = controller
     setFormatting(true)
     setLoading(null)
-    const { system, user } = buildPrompt(transcript, options)
+    const small = settings.engine === 'browser'
+    // Big models do better with the speaker's raw voice; small ones need the noise removed first.
+    const strictness = small ? toneById(options.tone).strictness : Math.min(toneById(options.tone).strictness, 1)
+    const { system, user } = buildPrompt(precleanTranscript(transcript, strictness as 0 | 1 | 2 | 3), options, { compact: small })
     let raw = ''
     let frame = 0
     try {

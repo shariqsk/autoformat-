@@ -1,3 +1,4 @@
+import { cleanTranscript, type Strictness } from './cleanup'
 import { layoutById, lengthById, toneById } from './styles'
 import type { FormatOptions } from './types'
 
@@ -6,11 +7,37 @@ export interface Prompt {
   user: string
 }
 
+/**
+ * Run the rule-based cleaner before the model sees the transcript. Less noise in means less
+ * noise out, fewer tokens, and far fewer repetition loops from small local models.
+ */
+export function precleanTranscript(raw: string, strictness: Strictness): string {
+  const paragraphs = cleanTranscript(raw, strictness)
+  return paragraphs.length ? paragraphs.map((p) => p.join(' ')).join('\n\n') : raw.trim()
+}
+
 /** Build the instructions handed to whichever LLM engine is selected. */
-export function buildPrompt(transcript: string, options: FormatOptions): Prompt {
+export function buildPrompt(transcript: string, options: FormatOptions, { compact = false } = {}): Prompt {
   const layout = layoutById(options.layout)
   const tone = toneById(options.tone)
   const length = lengthById(options.length)
+  const extra = options.instructions.trim()
+
+  if (compact) {
+    // Sub-2B models follow short, concrete instructions far better than long rule lists.
+    const system = [
+      `You rewrite voice transcripts into a ${layout.label.toLowerCase()}. ${layout.guide}`,
+      `Tone: ${tone.guide}`,
+      'Keep the speaker\'s meaning and facts. Do not add new information. Do not repeat sentences.',
+      options.includeTitle ? 'Start with a title line formatted as "# Title".' : 'Do not add a title.',
+      options.includeSummary ? 'After the title, add a one-sentence summary starting with "> **TL;DR:**".' : null,
+      'Reply with Markdown only.',
+    ]
+      .filter(Boolean)
+      .join('\n')
+    const user = `${extra ? `${extra}\n\n` : ''}Transcript:\n${transcript.trim()}`
+    return { system, user }
+  }
 
   const metadata = [
     options.includeTitle ? 'title: a specific, compelling title (no clickbait, no trailing period)' : null,
@@ -45,7 +72,6 @@ export function buildPrompt(transcript: string, options: FormatOptions): Prompt 
     .filter((line): line is string => line !== null)
     .join('\n')
 
-  const extra = options.instructions.trim()
   const user = [
     extra ? `Extra instructions from the author: ${extra}\n` : '',
     'Transcript:',

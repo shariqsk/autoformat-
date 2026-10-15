@@ -1,3 +1,4 @@
+import { wordCount } from '../format/text'
 import { generateInBrowser } from '../ml/client'
 import { generateWithClaude } from './anthropic'
 import { generateWithOllama } from './ollama'
@@ -9,7 +10,13 @@ export function generate(engine: Exclude<EngineId, 'instant'>, settings: EngineS
   switch (engine) {
     case 'browser':
       return generateInBrowser(
-        { model: settings.browser.model, system: args.system, user: args.user, maxNewTokens: 2048 },
+        {
+          model: settings.browser.model,
+          system: args.system,
+          user: args.user,
+          // Roughly 1.4 tokens per word, plus headroom for headings and the title.
+          maxNewTokens: Math.min(2048, Math.round(wordCount(args.user) * 1.8) + 200),
+        },
         { onDelta: args.onDelta, onLoading: args.onLoading },
         args.signal,
       )
