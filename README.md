@@ -1,40 +1,91 @@
 # AutoFormat
 
-**Talk it out. Publish it clean.**
+**Talk the way you talk. Get back writing that still sounds like you.**
 
-AutoFormat turns rambling voice notes into publish-ready writing. Hit record, talk the way you normally talk ("yeah bro, so basically…"), then pick a layout and a tone. You get a clean blog post, listicle, how-to, newsletter, thread or LinkedIn post that you can copy, download, or hand straight to a coding agent to publish.
+AutoFormat is a dictation desk for people who'd rather talk than type. Hit record and ramble ("yeah bro, so basically…"). Whisper transcribes it **on your device** while you speak. Then pick a layout and how much polish you want, and you get a blog post, listicle, thread or newsletter that reads like you wrote it on a good day, not like a chatbot rewrote you.
 
-![AutoFormat: a rambling transcript on the left turned into a structured blog post on the right](docs/screenshot.png)
+![AutoFormat: a rambling transcript on the left, a formatted post with a voice report on the right](docs/hero-light.png)
 
-Speech-to-text runs **on your device** using OpenAI's Whisper through [transformers.js](https://github.com/huggingface/transformers.js). It's free, needs no account, and your audio never leaves the browser. Models download once from Hugging Face and are then cached.
+<p align="center"><img src="docs/hero-dark.png" width="49%" alt="Night desk (dark) theme" /> <img src="docs/changes-panel.png" width="49%" alt="The Changes view: every word that was cut or added" /></p>
 
 ---
 
+## Why it's different
+
+Most "AI formatters" hand your words to a model and get back something that sounds like everyone else. AutoFormat is built the other way round. **Your voice is the product**, and the app proves it hasn't been lost:
+
+- **"How much of you" dial.** Every level keeps your words, slang and opinions.
+  - **Word for word:** punctuation and paragraphs only.
+  - **No filter:** fixes the flow (ums, false starts, "you know") but keeps swearing, jokes and "bro".
+  - **Polished:** tighter, nothing crude.
+  - **Formal:** "you in a blazer". A handful of word swaps like *gonna → going to*. Same sentences, same contractions.
+- **Live proof as you choose.** The dial shows a before/after diff of the messiest sentence from *your own* transcript, so you can see exactly what each level will do.
+- **Sounds-like-you score.** After formatting, a voice report measures how much of the page is your own words, in your order, and lists any words the editor introduced.
+- **AI-tell detector.** Words like *delve, tapestry, leverage, seamless* and *it's worth noting*, plus em-dash overuse, are highlighted like a marker pen. One click fixes them, and one click undoes the fix. The same list is banned in every prompt.
+- **Changes view.** Track changes from what you said to what's on the page. Click any word that was cut to put it on your keep-list for good.
+- **Voice profile:**
+  - **Words that stay:** your catchphrases survive every level and every model.
+  - **Words Whisper gets wrong:** a dictionary for misheard names ("clawed" → "Claude").
+  - **How you write:** paste samples of your own writing and AI editors match your rhythm.
+- **Small models only name things.** A 1B model can't rewrite you without drifting, so by default the in-browser AI writes only the **title and section headings**. Every sentence stays yours.
+
 ## Features
 
-**🎙️ Speech in**
-- **Whisper, in the browser**: Tiny / Base / Small (English), Base (multilingual) and Large v3 Turbo. Uses WebGPU when available and falls back to WASM.
-- **Live mode** uses the browser's built-in speech recognition, so words appear as you talk.
-- Upload any audio or video file (m4a, mp3, wav, webm…) to transcribe it.
-- Record in several takes; each one is appended to the transcript. Pause and resume are supported.
+**🎙️ Talk**
 
-**🪄 Formatting engines.** Pick the trade-off you want:
+- **Live Whisper transcription.** The recording is cut into ~12 s segments at natural pauses and transcribed while you speak, so the text is ready the moment you stop. It runs on your device using WebGPU (or WASM as a fallback), with Tiny / Base / Small / multilingual / Large-v3-Turbo models.
+- **Browser speech mode** puts words on screen instantly as you speak (Chrome sends that audio to Google).
+- **Tape-deck controls:** live waveform, timecode, pause and resume (<kbd>Space</kbd>), and **Save audio** for every take.
+- **Other input:** upload or **drag in** any audio or video file, or drop a `.txt`/`.md`. **Sample** loads a demo ramble.
 
-| Engine | Where it runs | Cost | Notes |
+**📐 Shape**
+
+- **10 layouts:** blog, listicle, how-to, essay, newsletter, Q&A, X/Threads, LinkedIn, notes, journal. Each has a drawn thumbnail.
+- **Options:** 4 voice levels; length (*Tight / Balanced / Everything*); title, TL;DR and tag toggles; a free-form *note to the editor*.
+- **5 editors:**
+
+| Editor | Runs | Cost | What it does |
 | --- | --- | --- | --- |
-| **Instant** | Your browser, rule-based | Free | Removes fillers, stutters and slang, fixes punctuation, builds paragraphs and layouts. No model, results in milliseconds. |
-| **In-browser AI** | Your GPU (WebGPU) | Free | Gemma 3 1B (default) or Qwen 2.5 0.5B / 1.5B via transformers.js. Fully private, but a 1B model paraphrases loosely. |
-| **Ollama** | Your machine | Free | Any local model (Llama, Qwen, Gemma, Mistral…). |
+| **Instant** | In your browser | Free | Rule-based cleanup and layout in milliseconds. Never invents a word; headings come from your own opening clauses ("The Thing That Surprised Me Most"). |
+| **In-browser AI** | Your GPU (WebGPU) | Free | Gemma 3 1B / Qwen 2.5 via transformers.js writes the title and headings; your sentences stay untouched. A full-rewrite mode is available as an experiment. |
+| **Ollama** | Your machine | Free | Any local model. Full voice-preserving edit. |
 | **OpenAI-compatible** | Anywhere | Varies | LM Studio, llama.cpp, Groq, OpenRouter, OpenAI… |
-| **Claude** | Anthropic API | Paid | Best writing quality. Uses your own API key. |
+| **Claude** | Anthropic API | Paid | Opus 5.5 / Sonnet 5.5 / Haiku 5.5 with your own key. Best editing quality. |
 
-**📐 10 layouts:** blog post, listicle, how-to guide, essay, newsletter, Q&A, X/Threads thread, LinkedIn post, notes/outline, journal entry.
+**📄 Page**
 
-**🎚️ 6 tones:** Verbatim, My voice, Casual, Professional, Academic, Punchy. Plus length (concise / balanced / detailed), title, TL;DR and tag toggles, and free-form extra instructions.
+- **Read view:** serif reading layout with an editable title, description and tags, plus **other titles, in your words** offered as one-click swaps.
+- **Voice report:** sounds-like-you score, AI tells (with fix and undo), and reading grade.
+- **Listen** reads the draft aloud. It's the fastest way to hear whether it still sounds like you.
+- **Threads** become per-post cards with character counts and copy buttons.
+- **Export:**
+  - Markdown with YAML front matter (Astro, Next.js, Hugo, Jekyll)
+  - an HTML fragment for any CMS
+  - a standalone web page with SEO meta tags
+  - plain text
+  - JSON
+  - an **agent brief**: a ready-to-paste task for Claude Code, Cursor or any coding agent to publish the post on your blog
 
-**📦 Export:** Markdown with YAML front matter (works with Astro, Next.js, Hugo, Jekyll), an HTML fragment for any CMS, a standalone styled web page with SEO meta tags, plain text, JSON, and an **Agent brief**: a ready-to-paste task that tells Claude Code, Cursor or any coding agent how to add the post to your blog. Copying from Preview puts rich HTML on the clipboard, so formatting survives a paste into Google Docs, Notion, Medium or WordPress.
+  Copy from the Read view puts **rich HTML** on the clipboard, so formatting survives a paste into Google Docs, Notion, Medium or WordPress.
 
-**🗂️ Drafts and editing.** Edit the title, description, tags and Markdown body after formatting. The last 50 drafts are kept in local history.
+**✨ Everything else**
+
+- **Searchable drafts:** the last 50, stored only in your browser.
+- **Themes:** light "paper" and dark "night desk", following your OS until you choose.
+- **Installable PWA:** the app shell works offline, and models are cached after their first download.
+- **Keyboard first:**
+
+| Key | Action |
+| --- | --- |
+| <kbd>R</kbd> | Record / stop |
+| <kbd>Space</kbd> | Pause / resume |
+| <kbd>⌘</kbd><kbd>↵</kbd> | Format |
+| <kbd>⌘</kbd><kbd>⇧</kbd><kbd>C</kbd> | Copy |
+| <kbd>⌘</kbd><kbd>K</kbd> | Drafts |
+| <kbd>⌘</kbd><kbd>.</kbd> | Theme |
+| <kbd>?</kbd> | Help |
+
+<p align="center"><img src="docs/voice.png" width="70%" alt="Voice profile: words that stay, misheard-word fixes, writing samples" /></p>
 
 ## Quick start
 
@@ -43,92 +94,83 @@ pnpm install
 pnpm dev        # http://localhost:5173
 ```
 
-Click **Try a sample** if you want to see it work before talking into it.
+Click **Sample** to see it work without a microphone, or press <kbd>R</kbd> and start talking. The first recording downloads the Whisper model (~135 MB for Base); after that it's instant and works offline.
 
-### Using Ollama (free, local, high quality)
+### Better rewriting, still free: Ollama
 
 ```bash
 # install from https://ollama.com, then:
-ollama pull llama3.2      # or qwen2.5:7b, gemma3, mistral…
+ollama pull qwen2.5:7b     # or llama3.1:8b, gemma3, mistral…
 ollama serve
 ```
 
-In AutoFormat, choose the **Ollama** engine and use **Settings → Ollama → Detect** to pick a model. Ollama accepts requests from `localhost` pages by default. If you host AutoFormat somewhere else, start Ollama with `OLLAMA_ORIGINS="*"`.
+Choose the **Ollama** editor, then use **Settings → Ollama → Detect** to pick the model. Ollama accepts requests from `localhost` pages by default. If you host AutoFormat elsewhere, start it with `OLLAMA_ORIGINS="*"`.
 
-### Using LM Studio / Groq / OpenRouter / OpenAI
+### LM Studio, Groq, OpenRouter, OpenAI, Claude
 
-Choose **OpenAI-compatible**, click a preset in Settings, paste a key if the service needs one, then click **Detect** to list its models.
-
-### Using Claude
-
-Choose **Claude**, paste an API key from [console.anthropic.com](https://console.anthropic.com), and pick Opus 5.5, Sonnet 5.5 or Haiku 5.5.
-
-> API keys live only in your browser's `localStorage`. Requests go straight from your browser to the provider you picked, with no server in between.
+Pick the editor, open **Settings**, choose a preset or paste a base URL and key, and hit **Detect** to list models. Keys live only in your browser's `localStorage`, and requests go straight from your browser to the provider you picked.
 
 ## Scripts
 
 | Command | What it does |
 | --- | --- |
-| `pnpm dev` | Start the dev server |
-| `pnpm build` | Type-check and build for production (`dist/`) |
+| `pnpm dev` | Dev server |
+| `pnpm build` | Type-check and build the static site (`dist/`), including the service worker |
 | `pnpm preview` | Serve the production build |
-| `pnpm test` | Run the unit tests (Vitest) |
-| `pnpm typecheck` / `pnpm lint` | TypeScript and oxlint |
+| `pnpm test` | Unit tests (Vitest) |
+| `pnpm typecheck` / `pnpm lint` / `pnpm format` | TypeScript, oxlint, Prettier (with Tailwind class sorting) |
 
-The build is a fully static site, so you can deploy `dist/` to Netlify, Vercel, Cloudflare Pages or GitHub Pages.
+`dist/` is fully static: deploy it to Netlify, Vercel, Cloudflare Pages or GitHub Pages.
 
 ## How it works
 
 ```
- mic / file ──► MediaRecorder ──► decode + resample to 16 kHz mono
-                                        │
-                                        ▼
-                         Web Worker: Whisper (transformers.js, WebGPU/WASM)
-                                        │
-                                   transcript ◄── or live Web Speech API, or paste
-                                        │
-              ┌─────────────────────────┴──────────────────────────┐
-              ▼                                                    ▼
-   Instant engine (rule-based)                    buildPrompt(layout, tone, length…)
-   scrub → sentence repair → paragraphs → layout          │  streamed to the chosen LLM
-              │                                           ▼
-              │                               parseModelOutput (front matter, fences…)
-              └──────────────────────► FormattedDoc { title, description, tags, body }
-                                                        │
-                       Markdown · HTML · Web page · Text · JSON · Agent brief
+ mic ─► AudioWorklet ─► 16 kHz PCM ─► LiveWhisper: cut at quiet points every ~12 s
+                                          │
+                              Web Worker: Whisper (transformers.js, WebGPU/WASM)
+                                          │
+              transcript ◄── misheard-word fixes ◄── segments, in order, as you talk
+                  │
+     ┌────────────┼──────────────────────────────┬───────────────────────────────┐
+     ▼            ▼                              ▼                               ▼
+  Instant     In-browser AI                 Ollama / OpenAI / Claude         Voice profile
+  rules →     rules write the page,         copy-editor prompt + voice       keep-words masked
+  layout      model names title/headings    rules + AI-ism ban + samples     from every rule
+     └────────────┴──────────────┬───────────────┘
+                                 ▼
+             FormattedDoc { title, description, tags, body }
+                                 │
+     voice report (diff vs transcript) · AI-ism marks · changes · exports
 ```
 
 ```
 src/
-├── App.tsx                  state, formatting orchestration, shortcuts
-├── components/              Recorder, Style, Output panels; Settings; History
-├── hooks/                   useRecorder, usePersistentState, useCopy
-├── workers/ml.worker.ts     Whisper + in-browser LLM (transformers.js)
+├── App.tsx                    orchestration, shortcuts, theme, toasts
+├── components/                Talk / Shape / Page panels, dialogs, waveform, layout thumbnails
+├── hooks/                     useRecorder (worklet + analyser), useTheme, useSpeech, …
+├── workers/ml.worker.ts       Whisper + in-browser LLMs
 └── lib/
-    ├── format/              layouts & tones, rule-based cleaner, local layout engine, prompt + parser
-    ├── export/              all export formats
-    ├── llm/                 Ollama, OpenAI-compatible and Claude engines (streaming)
-    ├── ml/                  model catalogue + worker client
-    └── speech/              audio decoding, Web Speech wrapper
+    ├── analysis/              voice match, AI-isms (detect + fix), readability, change diff
+    ├── format/                voice levels, rule cleaner, offline layouts, headings planner, prompts, parser
+    ├── speech/                live Whisper segmenter, PCM utils, Web Speech wrapper
+    ├── llm/                   Ollama, OpenAI-compatible and Claude engines (streaming)
+    └── export/                Markdown, HTML, web page, text, JSON, agent brief
 ```
 
-### Design notes
+### Engineering notes
 
-- **Privacy by default.** The default path (Whisper with the Instant or In-browser engine) makes no network requests apart from the one-time model download.
-- **Every engine streams.** Ollama (NDJSON), OpenAI-compatible (SSE) and Claude (Anthropic SDK) share one `generate()` interface. The preview re-renders at most once per animation frame while text streams in.
-- **Lenient parsing.** Small local models often wrap output in code fences, leak `<think>` blocks, or skip the front matter. `parseModelOutput` handles all of these and fills in missing metadata.
-- **Instant engine.** A deterministic pipeline that removes fillers, stutters and verbal tics; formalises slang according to the tone's strictness; repairs unpunctuated run-ons from browser speech engines; and splits paragraphs on topic shifts ("anyway…", "another thing…").
-
-## Choosing an engine
-
-- **Fastest and most faithful:** *Instant*. It only removes noise and adds structure, so it never invents anything. Its headings are keyword-based, though.
-- **Free and private with real rewriting:** *Ollama* running a 7B–8B model (e.g. `qwen2.5:7b`, `llama3.1:8b`) gives much better results than any model small enough to run in a browser tab.
-- **Best quality:** *Claude*.
-- **Zero setup:** *In-browser AI* works offline after a one-time download of about 860 MB, but expect a 1B model to smooth over details and sometimes embellish.
+- **Voice-preserving rules.** The offline cleaner works in tiers (filler sounds → verbal tics → crude bits → slang swaps). Protected words are masked with private-use placeholders, so no rule can touch them. Unpunctuated run-ons from browser speech are split at discourse markers.
+- **Measuring voice.** The score is the length of the order-preserving word diff between transcript and body prose, divided by the body's word count. Headings, title and TL;DR are excluded, because they're structure built from the speaker's words.
+- **Live segmentation.** Each segment ends at the quietest 30 ms window near the 12 s mark, so words aren't split. Silent segments are skipped, and Whisper's stock hallucinations on silence ("Thank you.") are dropped.
+- **Small-model reality.**
+  - `q4f16` produced gibberish on Apple Metal WebGPU, so chat models load as `q4`.
+  - Whisper uses a `q8` decoder, which is smaller *and* accurate on WebGPU.
+  - Small models get compact prompts with explicit word budgets; when they're only naming things, their replies use a tiny, leniently parsed `TITLE: / 1: / 2:` format.
+- **Every remote engine streams** through one `generate()` interface, and the preview re-parses at most once per animation frame. The Anthropic SDK is lazy-loaded so non-Claude users don't download it.
 
 ## Browser support
 
-Chrome and Edge get everything, including WebGPU acceleration and live mode. Safari and Firefox run Whisper on WASM, which is slower; use the Tiny or Base model there. Live mode depends on the browser's `SpeechRecognition` support.
+Chrome and Edge get everything: WebGPU acceleration, live browser speech and rich clipboard. Safari and Firefox run Whisper on WASM, which is slower, so use Tiny or Base there. Browser speech mode depends on `SpeechRecognition` support.
 
 ## License
 
