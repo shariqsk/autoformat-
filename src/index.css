@@ -4,52 +4,19 @@
 @import '@fontsource-variable/newsreader/wght-italic.css';
 @import '@fontsource-variable/inter-tight/index.css';
 @import '@fontsource-variable/jetbrains-mono/index.css';
+@import '@fontsource-variable/unbounded/index.css';
+@import '@fontsource-variable/bricolage-grotesque/index.css';
+@import '@fontsource/space-mono/400.css';
+@import '@fontsource/space-mono/700.css';
+@import '@fontsource-variable/space-grotesk/index.css';
+@import '@fontsource-variable/geist/index.css';
+@import '@fontsource-variable/geist-mono/index.css';
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
+@import './styles/themes.css';
+@import './styles/components.css';
 
-@custom-variant dark (&:where(.dark, .dark *));
-
-/*
- * "The dictation desk": warm paper, ink, and one on-air red.
- * Every colour is a CSS variable so the night theme is a single class swap.
- */
-:root {
-  --paper: #f3eee4;
-  --sheet: #fbf8f1;
-  --well: #ece5d8;
-  --ink: #1c1a16;
-  --ink-2: #4a463e;
-  --ink-3: #857f72;
-  --rule: #ddd4c3;
-  --rule-strong: #c4b8a2;
-  --accent: #e0452b;
-  --accent-deep: #b3331b;
-  --accent-wash: #f8ddd4;
-  --marker: #fbe27a;
-  --olive: #4c6a37;
-  --olive-wash: #e1e9d3;
-  --shadow: 28 26 22;
-  color-scheme: light;
-}
-
-.dark {
-  --paper: #12110e;
-  --sheet: #1b1915;
-  --well: #24211c;
-  --ink: #efe9dc;
-  --ink-2: #c3bbab;
-  --ink-3: #8a8375;
-  --rule: #2e2b24;
-  --rule-strong: #403b32;
-  --accent: #ff5b3d;
-  --accent-deep: #ff8064;
-  --accent-wash: #3b1d15;
-  --marker: #6b5716;
-  --olive: #a4c486;
-  --olive-wash: #222b1b;
-  --shadow: 0 0 0;
-  color-scheme: dark;
-}
+@custom-variant dark (&:where([data-theme='studio'], [data-theme='studio'] *, [data-theme='desk-night'], [data-theme='desk-night'] *));
 
 @theme inline {
   --color-paper: var(--paper);
@@ -59,7 +26,20 @@
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-rule: var(--rule);
-  --color-rule-strong: var(--rule-strong);
+  --color-rule-strong: var(--edge-ctl);
+  --color-edge: var(--edge);
+  --color-edge-ctl: var(--edge-ctl);
+  --color-field: var(--field);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-on-accent: var(--on-accent);
+  --color-rec: var(--rec);
+  --color-pop-1: var(--pop-1);
+  --color-pop-2: var(--pop-2);
+  --color-pop-3: var(--pop-3);
+  --color-pop-4: var(--pop-4);
+  --color-chip-on: var(--chip-on);
+  --color-on-chip: var(--on-chip);
   --color-accent: var(--accent);
   --color-accent-deep: var(--accent-deep);
   --color-accent-wash: var(--accent-wash);
@@ -68,21 +48,34 @@
   --color-olive-wash: var(--olive-wash);
 }
 
+@theme inline {
+  --font-display: var(--t-display);
+  --font-serif: var(--t-reading);
+  --font-sans: var(--t-sans);
+  --font-mono: var(--t-mono);
+  --shadow-sheet: var(--shadow-panel);
+  --shadow-lift: var(--shadow-ctl);
+  --shadow-pop: var(--shadow-pop);
+  --radius-panel: var(--r-panel);
+  --radius-ctl: var(--r-ctl);
+}
+
 @theme {
-  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
-  --font-serif: 'Newsreader Variable', 'Iowan Old Style', Georgia, serif;
-  --font-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --shadow-sheet: 0 1px 0 rgb(var(--shadow) / 0.04), 0 1px 2px rgb(var(--shadow) / 0.06), 0 12px 32px -12px rgb(var(--shadow) / 0.18);
-  --shadow-lift: 0 1px 1px rgb(var(--shadow) / 0.08), 0 4px 12px -2px rgb(var(--shadow) / 0.14);
   --animate-rise: rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-blink: blink 1.4s ease-in-out infinite;
+  --animate-marquee: marquee 60s linear infinite;
 }
 
 @keyframes rise {
   from {
     opacity: 0;
     transform: translateY(6px);
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
 
@@ -108,9 +101,10 @@ body,
 }
 
 body {
-  background: var(--paper);
+  background: var(--backdrop), var(--paper);
+  background-attachment: fixed;
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: var(--t-sans);
   font-feature-settings: 'ss01', 'cv11';
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.25s ease;
@@ -167,24 +161,24 @@ select:focus-visible {
   --tw-prose-links: var(--accent-deep);
   --tw-prose-bold: var(--ink);
   --tw-prose-counters: var(--ink-3);
-  --tw-prose-bullets: var(--rule-strong);
+  --tw-prose-bullets: var(--edge-ctl);
   --tw-prose-hr: var(--rule);
   --tw-prose-quotes: var(--ink);
   --tw-prose-quote-borders: var(--accent);
   --tw-prose-code: var(--ink);
   --tw-prose-pre-bg: var(--well);
   --tw-prose-pre-code: var(--ink);
-  --tw-prose-th-borders: var(--rule-strong);
+  --tw-prose-th-borders: var(--edge-ctl);
   --tw-prose-td-borders: var(--rule);
-  font-family: var(--font-serif);
-  font-size: 1.1rem;
+  font-family: var(--t-reading);
+  font-size: var(--reading-size);
   line-height: 1.75;
 }
 
 .prose-desk :where(h2, h3) {
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.005em;
+  font-family: var(--t-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
 }
 
 .prose-desk :where(h2) {
@@ -220,13 +214,6 @@ mark.ai-ism {
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   cursor: help;
-}
-
-.small-caps {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 
 @media (prefers-reduced-motion: reduce) {

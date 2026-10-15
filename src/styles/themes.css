@@ -1,0 +1,238 @@
+/*
+ * Themes. Every visual decision is a CSS variable, set per [data-theme] on <html>, so a theme can change
+ * colour, type, shape, borders and shadows, not just a palette. Previews in the theme picker reuse the
+ * same selectors on a nested element.
+ *
+ *   yap         loud and playful: ink outlines, hard shadows, colour-blocked stickers (default)
+ *   studio      a dark audio-plugin look with an acid-lime glow
+ *   desk        editorial paper and ink with one on-air red
+ *   desk-night  the desk after dark
+ */
+
+:root,
+[data-theme='yap'] {
+  --paper: #fff1d6;
+  --sheet: #fffaf0;
+  --well: #ffe8bd;
+  --field: #fffdf8;
+  --ink: #141210;
+  --ink-2: #3b352d;
+  --ink-3: #7b6f5e;
+  --rule: #ecd9b3;
+  --edge: #141210;
+  --edge-ctl: #141210;
+  --accent: #ff4a1c;
+  --accent-deep: #d43206;
+  --accent-wash: #ffd5c4;
+  --on-accent: #ffffff;
+  --rec: #ff3b1f;
+  --marker: #ffe14d;
+  --olive: #0f8a47;
+  --olive-wash: #c6f2d4;
+  --pop-1: #ffd23f;
+  --pop-2: #ff9ecb;
+  --pop-3: #8fd3ff;
+  --pop-4: #b8f171;
+  --primary: #141210;
+  --on-primary: #fff6e2;
+  --chip-on: #ffd23f;
+  --on-chip: #141210;
+  --tile-on: #ffd23f;
+  --wave: #141210;
+  --wave-hot: #ff4a1c;
+
+  --bw: 2.5px;
+  --r-panel: 26px;
+  --r-ctl: 14px;
+  --shadow-panel: 6px 6px 0 var(--edge);
+  --shadow-ctl: 3px 3px 0 var(--edge);
+  --shadow-pop: 10px 10px 0 var(--edge);
+  --shadow-focus: 3px 3px 0 var(--edge);
+  --press: 3px;
+
+  --t-display: 'Unbounded Variable', 'Arial Black', sans-serif;
+  --t-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --t-reading: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --t-mono: 'Space Mono', ui-monospace, Menlo, monospace;
+  --display-weight: 800;
+  --display-tracking: -0.035em;
+  --display-italic: normal;
+  --label-font: var(--t-sans);
+  --label-weight: 800;
+  --label-size: 0.7rem;
+  --label-tracking: 0.08em;
+  --reading-size: 1.12rem;
+  --backdrop: radial-gradient(color-mix(in srgb, var(--edge) 22%, transparent) 1.2px, transparent 1.5px) 0 0 / 22px 22px;
+  color-scheme: light;
+}
+
+[data-theme='studio'] {
+  --paper: #09090c;
+  --sheet: #111116;
+  --well: #0b0b0f;
+  --field: #0d0d12;
+  --ink: #f3f4ec;
+  --ink-2: #b8bab0;
+  --ink-3: #6e7068;
+  --rule: #1e1f26;
+  --edge: #24252d;
+  --edge-ctl: #2c2d37;
+  --accent: #c8ff2e;
+  --accent-deep: #d9ff6b;
+  --accent-wash: #1d2509;
+  --on-accent: #0a0b06;
+  --rec: #ff4b2b;
+  --marker: #4a5a10;
+  --olive: #9dff6a;
+  --olive-wash: #15220d;
+  --pop-1: #c8ff2e;
+  --pop-2: #ff6a3d;
+  --pop-3: #5cd5ff;
+  --pop-4: #c8ff2e;
+  --primary: #c8ff2e;
+  --on-primary: #0a0b06;
+  --chip-on: #c8ff2e;
+  --on-chip: #0a0b06;
+  --tile-on: #171a10;
+  --wave: #c8ff2e;
+  --wave-hot: #ffffff;
+
+  --bw: 1px;
+  --r-panel: 20px;
+  --r-ctl: 12px;
+  --shadow-panel: 0 0 0 1px rgb(255 255 255 / 0.02), 0 30px 60px -30px rgb(0 0 0 / 0.9);
+  --shadow-ctl: 0 0 0 1px rgb(200 255 46 / 0.35), 0 0 22px -6px rgb(200 255 46 / 0.55);
+  --shadow-pop: 0 40px 90px -20px rgb(0 0 0 / 0.95);
+  --shadow-focus: 0 0 0 3px rgb(200 255 46 / 0.18);
+  --press: 0px;
+
+  --t-display: 'Space Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+  --t-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --t-reading: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --t-mono: 'Geist Mono Variable', ui-monospace, Menlo, monospace;
+  --display-weight: 600;
+  --display-tracking: -0.04em;
+  --display-italic: normal;
+  --label-font: var(--t-mono);
+  --label-weight: 500;
+  --label-size: 0.66rem;
+  --label-tracking: 0.16em;
+  --reading-size: 1.05rem;
+  --backdrop:
+    radial-gradient(60rem 40rem at 10% -10%, rgb(200 255 46 / 0.08), transparent 60%),
+    radial-gradient(50rem 40rem at 110% 110%, rgb(255 106 61 / 0.07), transparent 60%),
+    linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px) 0 0 / 100% 48px;
+  color-scheme: dark;
+}
+
+[data-theme='desk'] {
+  --paper: #f3eee4;
+  --sheet: #fbf8f1;
+  --well: #ece5d8;
+  --field: #f6f1e8;
+  --ink: #1c1a16;
+  --ink-2: #4a463e;
+  --ink-3: #857f72;
+  --rule: #ddd4c3;
+  --edge: #ddd4c3;
+  --edge-ctl: #c4b8a2;
+  --accent: #e0452b;
+  --accent-deep: #b3331b;
+  --accent-wash: #f8ddd4;
+  --on-accent: #ffffff;
+  --rec: #e0452b;
+  --marker: #fbe27a;
+  --olive: #4c6a37;
+  --olive-wash: #e1e9d3;
+  --pop-1: #e0452b;
+  --pop-2: #e0452b;
+  --pop-3: #e0452b;
+  --pop-4: #e0452b;
+  --primary: #1c1a16;
+  --on-primary: #f3eee4;
+  --chip-on: #1c1a16;
+  --on-chip: #f3eee4;
+  --tile-on: #f3eee4;
+  --wave: #1c1a16;
+  --wave-hot: #e0452b;
+
+  --bw: 1px;
+  --r-panel: 20px;
+  --r-ctl: 12px;
+  --shadow-panel: 0 1px 0 rgb(28 26 22 / 0.04), 0 1px 2px rgb(28 26 22 / 0.06), 0 12px 32px -12px rgb(28 26 22 / 0.18);
+  --shadow-ctl: 0 1px 1px rgb(28 26 22 / 0.08), 0 4px 12px -2px rgb(28 26 22 / 0.14);
+  --shadow-pop: 0 30px 60px -20px rgb(28 26 22 / 0.35);
+  --shadow-focus: none;
+  --press: 0px;
+
+  --t-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --t-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
+  --t-reading: 'Newsreader Variable', 'Iowan Old Style', Georgia, serif;
+  --t-mono: 'JetBrains Mono Variable', ui-monospace, Menlo, monospace;
+  --display-weight: 400;
+  --display-tracking: -0.01em;
+  --display-italic: italic;
+  --label-font: var(--t-mono);
+  --label-weight: 400;
+  --label-size: 0.68rem;
+  --label-tracking: 0.14em;
+  --reading-size: 1.1rem;
+  --backdrop: none;
+  color-scheme: light;
+}
+
+[data-theme='desk-night'] {
+  --paper: #12110e;
+  --sheet: #1b1915;
+  --well: #24211c;
+  --field: #1f1d18;
+  --ink: #efe9dc;
+  --ink-2: #c3bbab;
+  --ink-3: #8a8375;
+  --rule: #2e2b24;
+  --edge: #2e2b24;
+  --edge-ctl: #403b32;
+  --accent: #ff5b3d;
+  --accent-deep: #ff8064;
+  --accent-wash: #3b1d15;
+  --on-accent: #ffffff;
+  --rec: #ff5b3d;
+  --marker: #6b5716;
+  --olive: #a4c486;
+  --olive-wash: #222b1b;
+  --pop-1: #ff5b3d;
+  --pop-2: #ff5b3d;
+  --pop-3: #ff5b3d;
+  --pop-4: #ff5b3d;
+  --primary: #efe9dc;
+  --on-primary: #12110e;
+  --chip-on: #efe9dc;
+  --on-chip: #12110e;
+  --tile-on: #12110e;
+  --wave: #efe9dc;
+  --wave-hot: #ff5b3d;
+
+  --bw: 1px;
+  --r-panel: 20px;
+  --r-ctl: 12px;
+  --shadow-panel: 0 12px 32px -12px rgb(0 0 0 / 0.6);
+  --shadow-ctl: 0 4px 12px -2px rgb(0 0 0 / 0.5);
+  --shadow-pop: 0 30px 60px -20px rgb(0 0 0 / 0.8);
+  --shadow-focus: none;
+  --press: 0px;
+
+  --t-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --t-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
+  --t-reading: 'Newsreader Variable', 'Iowan Old Style', Georgia, serif;
+  --t-mono: 'JetBrains Mono Variable', ui-monospace, Menlo, monospace;
+  --display-weight: 400;
+  --display-tracking: -0.01em;
+  --display-italic: italic;
+  --label-font: var(--t-mono);
+  --label-weight: 400;
+  --label-size: 0.68rem;
+  --label-tracking: 0.14em;
+  --reading-size: 1.1rem;
+  --backdrop: none;
+  color-scheme: dark;
+}

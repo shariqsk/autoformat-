@@ -1,38 +1,35 @@
 import { useCallback, useEffect, useState } from 'react'
+import { DEFAULT_THEME, isThemeId, THEME_KEY, THEMES, type ThemeId } from '../lib/themes'
 
-export type Theme = 'light' | 'dark'
-
-const KEY = 'autoformat:theme'
-
-function initialTheme(): Theme {
-  const saved = localStorage.getItem(KEY)
-  if (saved === 'light' || saved === 'dark') return saved
-  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+function initialTheme(): ThemeId {
+  const saved = localStorage.getItem(THEME_KEY)
+  return isThemeId(saved) ? saved : DEFAULT_THEME
 }
 
-/** Light "paper" or dark "night desk". Follows the OS until the user picks one. */
+/** The app's look. Applied as data-theme on <html>; every token in styles/themes.css keys off it. */
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(initialTheme)
+  const [theme, setThemeState] = useState<ThemeId>(initialTheme)
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#12110e' : '#f3eee4')
+    const root = document.documentElement
+    root.dataset.theme = theme
+    const paper = getComputedStyle(root).getPropertyValue('--paper').trim()
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', paper)
   }, [theme])
 
-  useEffect(() => {
-    const media = matchMedia('(prefers-color-scheme: dark)')
-    const follow = (e: MediaQueryListEvent) => !localStorage.getItem(KEY) && setTheme(e.matches ? 'dark' : 'light')
-    media.addEventListener('change', follow)
-    return () => media.removeEventListener('change', follow)
+  const setTheme = useCallback((next: ThemeId) => {
+    localStorage.setItem(THEME_KEY, next)
+    setThemeState(next)
   }, [])
 
-  const toggle = useCallback(() => {
-    setTheme((t) => {
-      const next = t === 'dark' ? 'light' : 'dark'
-      localStorage.setItem(KEY, next)
+  /** Step to the next look (⌘.). */
+  const cycle = useCallback(() => {
+    setThemeState((current) => {
+      const next = THEMES[(THEMES.findIndex((t) => t.id === current) + 1) % THEMES.length].id
+      localStorage.setItem(THEME_KEY, next)
       return next
     })
   }, [])
 
-  return { theme, toggle }
+  return { theme, setTheme, cycle }
 }
