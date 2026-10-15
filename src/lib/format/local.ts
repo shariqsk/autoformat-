@@ -25,11 +25,28 @@ function topBigram(text: string, used: Set<string>): string | null {
   return best ? best[0] : null
 }
 
+const CLAUSE_BREAK = /^(?:was|is|are|were|because|so|but|and|which|when|if)$/i
+
+/** The first 3–7 word clause of a sentence (up to a comma or a linking word), if it has one. */
+export function clauseHead(sentence: string): string | null {
+  const words = sentence.replace(/[.!?]+$/, '').split(/\s+/)
+  for (let i = 3; i <= Math.min(7, words.length - 1); i++) {
+    if (/[,;:]$/.test(words[i - 1])) return words.slice(0, i).join(' ').slice(0, -1)
+    if (CLAUSE_BREAK.test(words[i])) return words.slice(0, i).join(' ')
+  }
+  return null
+}
+
 /** Section heading: a short opening sentence if there is one, else the chunk's key phrase. */
 function headingFor(chunk: string, corpus: string, used: Set<string>): string {
-  const first = chunk.split(/(?<=[.!?])\s+/)[0] ?? ''
+  const first = (chunk.split(/(?<=[.!?])\s+/)[0] ?? '').replace(/^(?:and|but|so|also|then|now|plus|oh|finally|first|firstly|next|lastly)\b,?\s+/i, '')
   const n = wordCount(first)
-  if (n >= 3 && n <= 7 && first.endsWith('.')) return titleCase(first.replace(/\.$/, ''))
+  // A short statement or question the speaker opened with makes the most natural heading.
+  if (n >= 2 && n <= 7 && /[.?]$/.test(first)) return titleCase(capitalize(first.replace(/\.$/, '')))
+  // Otherwise the speaker's own opening clause usually names the topic:
+  // "The thing that surprised me most was how good…" → "The Thing That Surprised Me Most".
+  const clause = clauseHead(first)
+  if (clause) return titleCase(capitalize(clause))
   const bigram = topBigram(chunk, used)
   if (bigram) {
     used.add(bigram)

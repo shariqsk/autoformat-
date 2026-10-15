@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { deriveTitle, formatLocally } from './local'
+import { clauseHead, deriveTitle, formatLocally } from './local'
 import { LAYOUTS } from './styles'
 import { DEFAULT_OPTIONS, type FormatOptions } from './types'
 
@@ -83,5 +83,18 @@ describe('deriveTitle', () => {
   it('falls back to keywords when no sentence fits', () => {
     const long = 'Whisper models transcribe speech locally and the transcription quality of whisper models keeps improving every single release cycle.'
     expect(deriveTitle([[long]])).toMatch(/^Thoughts on /)
+  })
+})
+
+describe('clauseHead', () => {
+  it('takes the opening clause before a verb or comma', () => {
+    expect(clauseHead('The thing that surprised me most was how good the free local models have gotten.')).toBe(
+      'The thing that surprised me most',
+    )
+    expect(clauseHead('My favourite part, honestly, is the price.')).toBe('My favourite part')
+  })
+
+  it('gives up on sentences without a short clause', () => {
+    expect(clauseHead('I went to the shop to buy some bread for my mum yesterday.')).toBeNull()
   })
 })
