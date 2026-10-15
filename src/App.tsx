@@ -161,7 +161,7 @@ export default function App() {
         </nav>
       </header>
 
-      <main className="mx-auto grid max-w-[1400px] gap-5 px-4 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+      <main className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-5 px-4 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div className="space-y-5">
           <RecorderPanel
             settings={settings}
