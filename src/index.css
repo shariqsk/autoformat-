@@ -142,6 +142,13 @@ body::before {
   outline-offset: 2px;
 }
 
+/* Text fields show focus with their own border instead of a second outline. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
 /* Ruled notepad lines for the transcript. Line height must match --line. */
 .notepad {
   --line: 1.75rem;
