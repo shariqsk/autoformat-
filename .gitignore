@@ -1,3 +1,28 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+dev-dist
+release
+out
+*.tsbuildinfo
+coverage
+
+# Desktop app build artifacts
+electron-dist
+*.dmg
+*.exe
+*.AppImage
+*.blockmap
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
 # Logs
 logs
 *.log
@@ -7,18 +32,30 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# AI assistant and agent workspaces
+.claude
+.agents
+.agent
+AGENTS.local.md
+CLAUDE.local.md
+.cursor
+.windsurf
+.aider*
+.codex
+.continue
+.t3
 
-# Editor directories and files
+# Editors and OS
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Scratch space
+scratch
