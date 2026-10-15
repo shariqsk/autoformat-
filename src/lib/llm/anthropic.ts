@@ -1,12 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { EngineSettings, GenerateArgs } from './types'
 
-export const CLAUDE_MODELS = [
-  { id: 'claude-opus-5-5', label: 'Claude Opus 5.5 — best writing quality' },
-  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 — fast and sharp' },
-  { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5 — fastest, cheapest' },
-]
-
 export async function generateWithClaude(settings: EngineSettings['anthropic'], args: GenerateArgs): Promise<string> {
   if (!settings.apiKey) throw new Error('Add your Anthropic API key in Settings to use Claude.')
   // The key is supplied by the user and stays in their browser; requests go straight to Anthropic.

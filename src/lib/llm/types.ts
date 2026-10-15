@@ -44,3 +44,9 @@ export const ENGINES: EngineInfo[] = [
 ]
 
 export const engineById = (id: EngineId) => ENGINES.find((e) => e.id === id) ?? ENGINES[0]
+
+export const CLAUDE_MODELS = [
+  { id: 'claude-opus-5-5', label: 'Claude Opus 5.5 — best writing quality' },
+  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 — fast and sharp' },
+  { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5 — fastest, cheapest' },
+]

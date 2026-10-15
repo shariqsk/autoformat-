@@ -1,12 +1,11 @@
 import { wordCount } from '../format/text'
 import { generateInBrowser } from '../ml/client'
-import { generateWithClaude } from './anthropic'
 import { generateWithOllama } from './ollama'
 import { generateWithOpenAi } from './openai'
 import type { EngineId, EngineSettings, GenerateArgs } from './types'
 
 /** Run the selected LLM engine, streaming text through args.onDelta. */
-export function generate(engine: Exclude<EngineId, 'instant'>, settings: EngineSettings, args: GenerateArgs): Promise<string> {
+export async function generate(engine: Exclude<EngineId, 'instant'>, settings: EngineSettings, args: GenerateArgs): Promise<string> {
   switch (engine) {
     case 'browser':
       return generateInBrowser(
@@ -24,8 +23,11 @@ export function generate(engine: Exclude<EngineId, 'instant'>, settings: EngineS
       return generateWithOllama(settings.ollama, args)
     case 'openai':
       return generateWithOpenAi(settings.openai, args)
-    case 'anthropic':
+    case 'anthropic': {
+      // The Anthropic SDK is only needed by Claude users, so keep it out of the main bundle.
+      const { generateWithClaude } = await import('./anthropic')
       return generateWithClaude(settings.anthropic, args)
+    }
   }
 }
 
