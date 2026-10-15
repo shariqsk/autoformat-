@@ -8,7 +8,7 @@ import { BROWSER_LLMS, WHISPER_MODELS, type ModelOption } from '../lib/ml/models
 import type { AppSettings } from '../lib/settings'
 import { cx, inputClass } from './classes'
 import { Modal } from './Modal'
-import { Badge, Button, Field } from './ui'
+import { Badge, Button, Field, Segmented } from './ui'
 
 const OPENAI_PRESETS = [
   { label: 'LM Studio', baseUrl: 'http://localhost:1234/v1' },
@@ -157,8 +157,26 @@ export function SettingsDialog({
 
         <Section
           title="In-browser AI"
-          description="A small LLM that runs on your GPU via WebGPU. Free and private, but less polished than bigger models."
+          description="A small language model that runs on your GPU via WebGPU. Free, private and offline once downloaded."
         >
+          <Field
+            label="What it does"
+            hint={
+              settings.browserMode === 'rewrite'
+                ? 'The model rewrites the whole piece. Small models drift from your voice and sometimes invent details: check the Changes tab.'
+                : 'Your sentences come straight from the transcript (cleaned by the rules); the model only names the post and its sections.'
+            }
+          >
+            <Segmented
+              label="In-browser AI mode"
+              value={settings.browserMode}
+              onChange={(browserMode) => onSettingsChange({ ...settings, browserMode })}
+              options={[
+                { value: 'headings', label: 'Titles & headings only' },
+                { value: 'rewrite', label: 'Full rewrite (experimental)' },
+              ]}
+            />
+          </Field>
           <ModelPicker models={BROWSER_LLMS} value={engines.browser.model} onChange={(model) => setEngine('browser', { model })} />
         </Section>
 

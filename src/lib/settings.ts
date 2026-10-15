@@ -9,6 +9,8 @@ export interface AppSettings {
   /** BCP-47 tag for live speech, or a Whisper language name. Empty = auto/English. */
   language: string
   engine: EngineId
+  /** In-browser AI: only write the title and headings (keeps every sentence yours), or rewrite fully. */
+  browserMode: 'headings' | 'rewrite'
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -16,6 +18,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   whisperModel: WHISPER_MODELS[1].id,
   language: '',
   engine: 'instant',
+  browserMode: 'headings',
 }
 
 export const DEFAULT_ENGINE_SETTINGS: EngineSettings = {

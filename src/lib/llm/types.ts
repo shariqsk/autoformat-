@@ -31,7 +31,13 @@ export interface EngineInfo {
 
 export const ENGINES: EngineInfo[] = [
   { id: 'instant', label: 'Instant', tagline: 'Rule-based cleanup. No model, no wait.', privacy: 'on-device', cost: 'free' },
-  { id: 'browser', label: 'In-browser AI', tagline: 'Small LLM running on your GPU via WebGPU.', privacy: 'on-device', cost: 'free' },
+  {
+    id: 'browser',
+    label: 'In-browser AI',
+    tagline: 'A small model on your GPU writes the title and headings; every sentence stays yours.',
+    privacy: 'on-device',
+    cost: 'free',
+  },
   { id: 'ollama', label: 'Ollama', tagline: 'Any local model: Llama, Qwen, Gemma, Mistral…', privacy: 'local server', cost: 'free' },
   {
     id: 'openai',

@@ -11,10 +11,12 @@ import { VoiceProfileDialog } from './components/VoiceProfileDialog'
 import { usePersistentState } from './hooks/usePersistentState'
 import { useTheme } from './hooks/useTheme'
 import { applyReplacements, type Strictness } from './lib/format/cleanup'
+import { applyHeadingPlan, buildHeadingPrompt, extractSections, parseHeadingPlan } from './lib/format/headings'
 import { formatLocally } from './lib/format/local'
 import { parseModelOutput } from './lib/format/parse'
 import { buildPrompt, precleanTranscript, targetWords } from './lib/format/prompt'
 import { normalizeToneId, toneById } from './lib/format/styles'
+import { stripMarkdown } from './lib/format/text'
 import { DEFAULT_OPTIONS, type FormatOptions, type FormattedDoc } from './lib/format/types'
 import { newEntryId, upsertHistory, type HistoryEntry } from './lib/history'
 import { generate } from './lib/llm'
@@ -80,8 +82,54 @@ export default function App() {
     const source = applyReplacements(transcript, profile.replacements)
     const base = { id: newEntryId(), createdAt: new Date().toISOString(), transcript: source, options, engine: settings.engine }
 
+    const local = () => formatLocally(source, options, { keepWords: profile.keepWords })
     if (settings.engine === 'instant') {
-      commit({ ...base, doc: formatLocally(source, options, { keepWords: profile.keepWords }) })
+      commit({ ...base, doc: local() })
+      return
+    }
+
+    // Small in-browser models can't rewrite without losing the speaker's voice, so by default they
+    // only name things: the page is the rule-cleaned transcript, the model adds title and headings.
+    if (settings.engine === 'browser' && settings.browserMode !== 'rewrite') {
+      const draft = local()
+      const sections = extractSections(draft.body)
+      if (!sections.length && !options.includeTitle) {
+        commit({ ...base, doc: draft })
+        return
+      }
+      const controller = new AbortController()
+      abortRef.current = controller
+      setFormatting(true)
+      setLiveDoc(draft)
+      try {
+        const opening = stripMarkdown(draft.body).split(/\s+/).slice(0, 60).join(' ')
+        const { system, user } = buildHeadingPrompt(sections, opening, options.includeTitle)
+        const reply = await generate('browser', engines, {
+          system,
+          user,
+          signal: controller.signal,
+          maxWords: sections.length * 10 + 24,
+          onLoading: setLoading,
+          onDelta: () => setLoading(null),
+        })
+        const plan = parseHeadingPlan(reply)
+        commit({
+          ...base,
+          doc: {
+            ...draft,
+            title: options.includeTitle ? plan.title || draft.title : '',
+            body: applyHeadingPlan(draft.body, sections, plan),
+          },
+        })
+      } catch (err) {
+        if (!controller.signal.aborted) notify(err instanceof Error ? err.message : String(err))
+        commit({ ...base, doc: draft })
+      } finally {
+        abortRef.current = null
+        setFormatting(false)
+        setLoading(null)
+        setLiveDoc(null)
+      }
       return
     }
 
@@ -130,7 +178,7 @@ export default function App() {
       setLoading(null)
       setLiveDoc(null)
     }
-  }, [transcript, formatting, options, settings.engine, engines, profile, commit, notify])
+  }, [transcript, formatting, options, settings.engine, settings.browserMode, engines, profile, commit, notify])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
