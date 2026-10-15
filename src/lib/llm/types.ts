@@ -16,6 +16,8 @@ export interface GenerateArgs {
   /** Called with each streamed chunk of text. */
   onDelta: (text: string) => void
   onLoading?: (progress: LoadProgress) => void
+  /** Hard cap on generated length for on-device models. */
+  maxWords?: number
 }
 
 export interface EngineInfo {

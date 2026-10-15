@@ -1,5 +1,6 @@
 import { cleanTranscript, type Strictness } from './cleanup'
 import { layoutById, lengthById, toneById } from './styles'
+import { wordCount } from './text'
 import type { FormatOptions } from './types'
 
 export interface Prompt {
@@ -16,6 +17,13 @@ export function precleanTranscript(raw: string, strictness: Strictness): string 
   return paragraphs.length ? paragraphs.map((p) => p.join(' ')).join('\n\n') : raw.trim()
 }
 
+const LENGTH_FACTOR = { concise: 0.5, balanced: 0.85, detailed: 1 } as const
+
+/** Rough output word budget for a transcript, used to stop small models from padding. */
+export function targetWords(transcript: string, options: FormatOptions): number {
+  return Math.max(40, Math.round((wordCount(transcript) * LENGTH_FACTOR[options.length]) / 10) * 10)
+}
+
 /** Build the instructions handed to whichever LLM engine is selected. */
 export function buildPrompt(transcript: string, options: FormatOptions, { compact = false } = {}): Prompt {
   const layout = layoutById(options.layout)
@@ -24,11 +32,15 @@ export function buildPrompt(transcript: string, options: FormatOptions, { compac
   const extra = options.instructions.trim()
 
   if (compact) {
-    // Sub-2B models follow short, concrete instructions far better than long rule lists.
+    // Sub-2B models follow short, concrete instructions far better than long rule lists, and pad
+    // relentlessly unless given an explicit word budget.
+    const budget = targetWords(transcript, options)
     const system = [
       `You rewrite voice transcripts into a ${layout.label.toLowerCase()}. ${layout.guide}`,
+      `Write about ${budget} words. Every sentence must come from something the speaker said; if a section would need new material, leave it out.`,
       `Tone: ${tone.guide}`,
-      'Keep the speaker\'s meaning and facts. Do not add new information. Do not repeat sentences.',
+      'Keep the speaker\'s meaning and facts. Do not add greetings, new ideas or information the speaker did not say. Do not repeat sentences.',
+      'Start directly with the content: no preamble such as "Here is".',
       options.includeTitle ? 'Start with a title line formatted as "# Title".' : 'Do not add a title.',
       options.includeSummary ? 'After the title, add a one-sentence summary starting with "> **TL;DR:**".' : null,
       'Reply with Markdown only.',

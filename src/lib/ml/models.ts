@@ -24,7 +24,7 @@ export const WHISPER_MODELS: ModelOption[] = [
 
 /** Small instruction-tuned LLMs that run fully in the browser. Quality is decent, not GPT-level. */
 export const BROWSER_LLMS: ModelOption[] = [
-  { id: 'onnx-community/Qwen2.5-0.5B-Instruct', label: 'Qwen 2.5 · 0.5B', size: '~450 MB', note: 'Fast, light cleanup' },
-  { id: 'onnx-community/Qwen2.5-1.5B-Instruct', label: 'Qwen 2.5 · 1.5B', size: '~1.1 GB', note: 'Best quality in-browser', needsGpu: true },
-  { id: 'onnx-community/gemma-3-1b-it-ONNX', label: 'Gemma 3 · 1B', size: '~1 GB', note: "Google's small model", needsGpu: true },
+  { id: 'onnx-community/gemma-3-1b-it-ONNX', label: 'Gemma 3 · 1B', size: '~860 MB', note: 'Recommended — faithful and fast' },
+  { id: 'onnx-community/Qwen2.5-0.5B-Instruct', label: 'Qwen 2.5 · 0.5B', size: '~790 MB', note: 'Fast, but rough — may embellish' },
+  { id: 'onnx-community/Qwen2.5-1.5B-Instruct', label: 'Qwen 2.5 · 1.5B', size: '~1.8 GB', note: 'Larger, more verbose', needsGpu: true },
 ]

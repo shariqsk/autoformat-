@@ -14,8 +14,8 @@ export function generate(engine: Exclude<EngineId, 'instant'>, settings: EngineS
           model: settings.browser.model,
           system: args.system,
           user: args.user,
-          // Roughly 1.4 tokens per word, plus headroom for headings and the title.
-          maxNewTokens: Math.min(2048, Math.round(wordCount(args.user) * 1.8) + 200),
+          // Roughly 1.4 tokens per word, plus headroom for headings and Markdown syntax.
+          maxNewTokens: Math.min(2048, Math.round((args.maxWords ?? wordCount(args.user)) * 1.6) + 120),
         },
         { onDelta: args.onDelta, onLoading: args.onLoading },
         args.signal,

@@ -18,20 +18,19 @@ const post = (msg: WorkerResponse) => self.postMessage(msg)
 
 interface Accel {
   device: DeviceType
-  fp16: boolean
 }
 
 let accelPromise: Promise<Accel> | null = null
 function detectAccel(): Promise<Accel> {
   accelPromise ??= (async () => {
-    const gpu = (navigator as Navigator & { gpu?: { requestAdapter(): Promise<{ features: Set<string> } | null> } }).gpu
+    const gpu = (navigator as Navigator & { gpu?: { requestAdapter(): Promise<object | null> } }).gpu
     try {
       const adapter = await gpu?.requestAdapter()
-      if (adapter) return { device: 'webgpu', fp16: adapter.features.has('shader-f16') }
+      if (adapter) return { device: 'webgpu' }
     } catch {
       /* fall through to WASM */
     }
-    return { device: 'wasm', fp16: false }
+    return { device: 'wasm' }
   })()
   return accelPromise
 }
@@ -74,8 +73,9 @@ async function getAsr(id: number, model: string) {
 
 async function getLlm(id: number, model: string) {
   if (llm?.model !== model) {
-    const { device, fp16 } = await detectAccel()
-    const dtype: DataType = device === 'webgpu' && fp16 ? 'q4f16' : 'q4'
+    const { device } = await detectAccel()
+    // q4f16 produces gibberish on some GPUs (seen on Apple Metal); q4 is coherent everywhere and nearly as fast.
+    const dtype: DataType = 'q4'
     llm = {
       model,
       instance: pipeline('text-generation', model, { device, dtype, progress_callback: progressReporter(id) }),
@@ -118,10 +118,9 @@ async function generate(req: Extract<WorkerRequest, { type: 'generate' }>) {
     ],
     {
       max_new_tokens: req.maxNewTokens,
-      // Light sampling plus an n-gram block keeps small models out of repetition loops.
-      do_sample: true,
-      temperature: 0.4,
-      top_p: 0.9,
+      // Greedy decoding keeps small models faithful to the transcript (sampling made them embellish);
+      // the n-gram block and repetition penalty stop them looping.
+      do_sample: false,
       repetition_penalty: 1.1,
       no_repeat_ngram_size: 8,
       streamer,
