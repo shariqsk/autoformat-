@@ -21,7 +21,7 @@ Speech-to-text runs **on your device** using OpenAI's Whisper through [transform
 | Engine | Where it runs | Cost | Notes |
 | --- | --- | --- | --- |
 | **Instant** | Your browser, rule-based | Free | Removes fillers, stutters and slang, fixes punctuation, builds paragraphs and layouts. No model, results in milliseconds. |
-| **In-browser AI** | Your GPU (WebGPU) | Free | Qwen 2.5 (0.5B / 1.5B) or Gemma 3 1B via transformers.js. |
+| **In-browser AI** | Your GPU (WebGPU) | Free | Gemma 3 1B (default) or Qwen 2.5 0.5B / 1.5B via transformers.js. Fully private, but a 1B model paraphrases loosely. |
 | **Ollama** | Your machine | Free | Any local model (Llama, Qwen, Gemma, Mistral…). |
 | **OpenAI-compatible** | Anywhere | Varies | LM Studio, llama.cpp, Groq, OpenRouter, OpenAI… |
 | **Claude** | Anthropic API | Paid | Best writing quality. Uses your own API key. |
@@ -116,6 +116,13 @@ src/
 - **Every engine streams.** Ollama (NDJSON), OpenAI-compatible (SSE) and Claude (Anthropic SDK) share one `generate()` interface. The preview re-renders at most once per animation frame while text streams in.
 - **Lenient parsing.** Small local models often wrap output in code fences, leak `<think>` blocks, or skip the front matter. `parseModelOutput` handles all of these and fills in missing metadata.
 - **Instant engine.** A deterministic pipeline that removes fillers, stutters and verbal tics; formalises slang according to the tone's strictness; repairs unpunctuated run-ons from browser speech engines; and splits paragraphs on topic shifts ("anyway…", "another thing…").
+
+## Choosing an engine
+
+- **Fastest and most faithful:** *Instant*. It only removes noise and adds structure, so it never invents anything. Its headings are keyword-based, though.
+- **Free and private with real rewriting:** *Ollama* running a 7B–8B model (e.g. `qwen2.5:7b`, `llama3.1:8b`) gives much better results than any model small enough to run in a browser tab.
+- **Best quality:** *Claude*.
+- **Zero setup:** *In-browser AI* works offline after a one-time download of about 860 MB, but expect a 1B model to smooth over details and sometimes embellish.
 
 ## Browser support
 
