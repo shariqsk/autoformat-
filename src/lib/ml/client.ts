@@ -63,8 +63,34 @@ function run(request: JobRequest, callbacks: JobCallbacks, signal?: AbortSignal)
   })
 }
 
+const readyModels = new Set<string>()
+
+/** Download (if needed) and load a Whisper model so recording can start straight away. */
+export async function prepareWhisper(model: string, callbacks: JobCallbacks = {}): Promise<void> {
+  if (readyModels.has(model)) return
+  await run({ type: 'prepare', model }, callbacks)
+  readyModels.add(model)
+}
+
+export type ModelStatus = 'ready' | 'downloaded' | 'missing'
+
+/** Is a model loaded this session, already in the browser's model cache, or not downloaded yet? */
+export async function whisperStatus(model: string): Promise<ModelStatus> {
+  if (readyModels.has(model)) return 'ready'
+  try {
+    const cache = await caches.open('transformers-cache')
+    const keys = await cache.keys()
+    return keys.some((r) => r.url.includes(`/${model}/`) && r.url.includes('encoder_model')) ? 'downloaded' : 'missing'
+  } catch {
+    return 'missing'
+  }
+}
+
 export function transcribeInBrowser(audio: Float32Array, model: string, callbacks: JobCallbacks = {}, language?: string): Promise<string> {
-  return run({ type: 'transcribe', model, audio, language }, callbacks)
+  return run({ type: 'transcribe', model, audio, language }, callbacks).then((text) => {
+    readyModels.add(model)
+    return text
+  })
 }
 
 export function generateInBrowser(

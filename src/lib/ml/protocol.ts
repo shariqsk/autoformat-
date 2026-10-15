@@ -3,6 +3,7 @@
 export type WorkerRequest =
   | { id: number; type: 'transcribe'; model: string; audio: Float32Array; language?: string }
   | { id: number; type: 'generate'; model: string; system: string; user: string; maxNewTokens: number }
+  | { id: number; type: 'prepare'; model: string }
   | { id: number; type: 'abort' }
 
 export interface LoadProgress {

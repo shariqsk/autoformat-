@@ -137,7 +137,11 @@ self.addEventListener('message', async (event: MessageEvent<WorkerRequest>) => {
     return
   }
   try {
-    if (req.type === 'transcribe') await transcribe(req)
+    if (req.type === 'prepare') {
+      // Download (first time) and load a speech model ahead of recording.
+      await getAsr(req.id, req.model)
+      post({ id: req.id, type: 'result', text: '' })
+    } else if (req.type === 'transcribe') await transcribe(req)
     else await generate(req)
   } catch (err) {
     post({ id: req.id, type: 'error', message: err instanceof Error ? err.message : String(err) })

@@ -3,20 +3,20 @@ import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'reac
 import { useRecorder } from '../hooks/useRecorder'
 import { applyReplacements } from '../lib/format/cleanup'
 import { wordCount } from '../lib/format/text'
-import { transcribeInBrowser } from '../lib/ml/client'
+import { prepareWhisper, transcribeInBrowser, whisperStatus, type ModelStatus } from '../lib/ml/client'
 import { WHISPER_MODELS } from '../lib/ml/models'
 import type { LoadProgress } from '../lib/ml/protocol'
 import { SAMPLE_TRANSCRIPT } from '../lib/sample'
 import type { AppSettings } from '../lib/settings'
 import { decodeToWhisperPcm } from '../lib/speech/audio'
 import { LiveWhisper } from '../lib/speech/liveWhisper'
-import { isWebSpeechSupported, startLiveTranscription, type LiveSession } from '../lib/speech/webSpeech'
+import { isServiceUnavailable, isWebSpeechSupported, startLiveTranscription, type LiveSession } from '../lib/speech/webSpeech'
 import type { VoiceProfile } from '../lib/voice'
 import { cx, inputClass } from './classes'
-import { Button, Kbd, Panel, ProgressBar, Segmented } from './ui'
+import { Badge, Button, Kbd, Panel, ProgressBar, Segmented } from './ui'
 import { Waveform } from './Waveform'
 
-type Phase = 'idle' | 'recording' | 'finishing' | 'file'
+type Phase = 'idle' | 'preparing' | 'recording' | 'finishing' | 'file'
 
 export interface RecorderControls {
   toggle(): void
@@ -69,7 +69,40 @@ export function RecorderPanel({
   const reported = useRef(false)
 
   const model = WHISPER_MODELS.find((m) => m.id === settings.whisperModel) ?? WHISPER_MODELS[0]
-  const webSpeech = settings.sttEngine === 'webspeech'
+  const onlineAvailable = isWebSpeechSupported()
+  const webSpeech = onlineAvailable && settings.sttEngine === 'webspeech'
+  const [modelStatus, setModelStatus] = useState<ModelStatus | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void whisperStatus(model.id).then((s) => !cancelled && setModelStatus(s))
+    return () => {
+      cancelled = true
+    }
+  }, [model.id])
+
+  /** Download (first time) and load the speech model, with progress. */
+  async function ensureModel() {
+    if ((await whisperStatus(model.id)) === 'ready') return
+    setPhase('preparing')
+    try {
+      await prepareWhisper(model.id, { onLoading: setLoading })
+      setModelStatus('ready')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function downloadModel() {
+    if (phase !== 'idle') return
+    try {
+      await ensureModel()
+    } catch (err) {
+      onError(`Couldn't download the speech model: ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setPhase('idle')
+    }
+  }
   const recording = recorder.state !== 'idle'
   const fix = (text: string) => applyReplacements(text, profile.replacements)
   const callbacks = {
@@ -86,6 +119,8 @@ export function RecorderPanel({
     setPhase('file')
     try {
       const pcm = await decodeToWhisperPcm(file)
+      await ensureModel()
+      setPhase('file')
       const text = await transcribeInBrowser(pcm, model.id, callbacks, settings.language || undefined)
       if (text.trim()) onTranscriptChange((prev) => joinText(prev, fix(text)))
       else onError("Whisper didn't hear any speech in that file.")
@@ -112,13 +147,19 @@ export function RecorderPanel({
             if (finalText) onTranscriptChange(() => joinText(base, fix(finalText)))
             setInterim(interimText)
           },
-          onError: (message) => {
-            onError(message)
+          onError: (message, code) => {
+            if (isServiceUnavailable(code)) {
+              // Online mode can't work in this browser; fall back to private mode for next time.
+              onSettingsChange({ ...settings, sttEngine: 'whisper' })
+              onError(`${message} Switched you to Private mode, which runs on your device. Press record again.`)
+            } else onError(message)
             void stop()
           },
           onEnd: () => setInterim(''),
         })
       } else {
+        // Get the model ready before the mic opens, so nothing you say is lost while it downloads.
+        await ensureModel()
         const session = new LiveWhisper(
           model.id,
           settings.language || undefined,
@@ -146,6 +187,7 @@ export function RecorderPanel({
             : String(err),
       )
       whisper.current = null
+      setPhase('idle')
       void recorder.stop()
     } finally {
       busy.current = false
@@ -212,6 +254,7 @@ export function RecorderPanel({
   }))
 
   const status = (() => {
+    if (phase === 'preparing') return 'Getting the speech model ready. One-time download, then it lives on your device.'
     if (phase === 'finishing') return 'Catching the last few words…'
     if (phase === 'file') return loading ? 'Loading the speech model…' : 'Transcribing your file…'
     if (recorder.state === 'paused') return 'Paused. Pick up where you left off.'
@@ -243,22 +286,18 @@ export function RecorderPanel({
         tone={1}
         title="Talk"
         aside={
-          <Segmented
-            size="sm"
-            label="Speech engine"
-            value={settings.sttEngine}
-            onChange={(sttEngine) => !recording && onSettingsChange({ ...settings, sttEngine })}
-            options={[
-              { value: 'whisper', label: 'Whisper', title: 'Private: runs on your device' },
-              {
-                value: 'webspeech',
-                label: 'Browser',
-                title: isWebSpeechSupported()
-                  ? "Your browser's speech service (Chrome sends audio to Google)"
-                  : 'Not supported in this browser',
-              },
-            ]}
-          />
+          onlineAvailable && (
+            <Segmented
+              size="sm"
+              label="How to transcribe"
+              value={webSpeech ? 'webspeech' : 'whisper'}
+              onChange={(sttEngine) => !recording && phase === 'idle' && onSettingsChange({ ...settings, sttEngine })}
+              options={[
+                { value: 'whisper', label: 'Private', title: 'Transcribed on your device. Your audio never leaves it.' },
+                { value: 'webspeech', label: 'Online', title: "Words appear instantly using your browser's online speech service." },
+              ]}
+            />
+          )
         }
       >
         {/* The deck: waveform, transport and timecode. */}
@@ -270,7 +309,7 @@ export function RecorderPanel({
               <button
                 type="button"
                 onClick={toggle}
-                disabled={phase === 'finishing' || phase === 'file'}
+                disabled={phase === 'finishing' || phase === 'file' || phase === 'preparing'}
                 aria-label={recording ? 'Stop recording' : 'Start recording'}
                 className="rec group relative size-16 shrink-0 disabled:opacity-50"
               >
@@ -327,12 +366,12 @@ export function RecorderPanel({
             </div>
           </div>
 
-          {(loading || phase === 'file' || phase === 'finishing') && (
+          {(loading || phase === 'file' || phase === 'finishing' || phase === 'preparing') && (
             <div className="mt-4 space-y-1.5" aria-live="polite">
               <ProgressBar value={loading?.fraction ?? null} />
               {loading && (
                 <p className="text-[11px] text-ink-3">
-                  Downloading {model.label}
+                  Downloading the {model.label.toLowerCase()} speech model
                   {loading.totalBytes ? ` · ${megabytes(loading.loadedBytes)} of ${megabytes(loading.totalBytes)}` : ''}. One time only,
                   then it lives in your browser.
                 </p>
@@ -353,21 +392,46 @@ export function RecorderPanel({
           />
         </div>
 
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          className="mt-3 flex w-full items-center gap-2 rounded-lg px-1 text-left text-[11px] text-ink-3 hover:text-ink"
-        >
-          <AudioLines className="size-3.5 shrink-0" />
-          {webSpeech ? (
-            <span>Browser speech · fast live text, but audio goes to your browser vendor's servers</span>
-          ) : (
-            <span>
-              {model.label} · {model.size} · runs on your {device === 'wasm' ? 'CPU' : 'device'}, audio never leaves it ·{' '}
-              <span className="underline decoration-edge-ctl underline-offset-2">change</span>
+        {/* Which speech model, and whether it's on this device yet. */}
+        {webSpeech ? (
+          <p className="mt-3 flex items-start gap-2 px-1 text-xs leading-relaxed text-ink-3">
+            <AudioLines className="mt-0.5 size-3.5 shrink-0" />
+            Online mode: words appear as you talk, using your browser's speech service, so your audio goes to Google, Apple or Microsoft.
+            Switch to Private to keep everything on this device.
+          </p>
+        ) : (
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 px-1 text-xs text-ink-3">
+            <label htmlFor="speech-model" className="label text-ink-3">
+              Speech model
+            </label>
+            <select
+              id="speech-model"
+              value={model.id}
+              disabled={recording || phase !== 'idle'}
+              onChange={(e) => onSettingsChange({ ...settings, whisperModel: e.target.value })}
+              className="field w-auto cursor-pointer py-1.5 pr-8 text-xs font-semibold"
+            >
+              {WHISPER_MODELS.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label} · {m.size}
+                </option>
+              ))}
+            </select>
+            {modelStatus === 'ready' && <Badge tone="olive">Ready</Badge>}
+            {modelStatus === 'downloaded' && <Badge>Downloaded</Badge>}
+            {modelStatus === 'missing' && phase === 'idle' && (
+              <Button size="xs" variant="outline" onClick={() => void downloadModel()}>
+                <Download className="size-3" /> Download now
+              </Button>
+            )}
+            <span className="basis-full sm:basis-auto">
+              {model.note}. Runs on your {device === 'wasm' ? 'CPU' : 'device'}; audio never leaves it.{' '}
+              <button type="button" onClick={onOpenSettings} className="underline decoration-edge-ctl underline-offset-2 hover:text-ink">
+                More options
+              </button>
             </span>
-          )}
-        </button>
+          </div>
+        )}
 
         <div className="mt-5 flex items-center gap-3">
           <span className="label text-ink-3">Transcript</span>
