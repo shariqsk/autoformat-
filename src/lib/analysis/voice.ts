@@ -5,7 +5,7 @@ import { AI_ISMS } from './aiisms'
 const tokens = (text: string) => stripMarkdown(text).toLowerCase().replace(/[’]/g, "'").match(/[a-z0-9]+(?:'[a-z]+)?/g) ?? []
 
 export interface VoiceMatch {
-  /** 0–100: share of the output that is the speaker's own words, in their order. */
+  /** 0–100: share of the body prose that is the speaker's own words, in their order. */
   score: number
   outputWords: number
   keptWords: number
@@ -15,21 +15,30 @@ export interface VoiceMatch {
 }
 
 const FUNCTION_WORDS = new Set(
-  'a an the and or but so to of in on at for with by from as is are was were be been it its this that these those i you we they he she me my your our their not no do does did have has had will would can could should just very'.split(
+  'a an the and or but so to of in on at for with by from as is are was were be been it its this that these those i you we they he she me my your our their not no do does did have has had will would can could should just very tl dr'.split(
     ' ',
   ),
 )
 
+/** Body prose only: headings, the title and TL;DR summaries are structure, not the speaker's flow. */
+function prose(markdown: string): string {
+  return markdown
+    .split('\n')
+    .filter((line) => !/^\s*#{1,6}\s/.test(line) && !/^\s*>\s*\*\*TL;DR/i.test(line))
+    .join('\n')
+}
+
 export function voiceMatch(transcript: string, output: string): VoiceMatch {
   const said = tokens(transcript)
-  const written = tokens(output)
+  const written = tokens(prose(output))
   if (!written.length) return { score: 0, outputWords: 0, keptWords: 0, newWords: [], verdict: '' }
+  // Order-aware: words kept in the speaker's sequence. Paraphrase and reshuffling both lower it.
   let kept = 0
+  for (const part of diffArrays(said, written)) if (!part.added && !part.removed) kept += part.value.length
+  // Vocabulary the speaker never used anywhere (including headings, which count here).
+  const vocabulary = new Set(said)
   const added = new Map<string, number>()
-  for (const part of diffArrays(said, written)) {
-    if (part.added) part.value.forEach((w) => !FUNCTION_WORDS.has(w) && added.set(w, (added.get(w) ?? 0) + 1))
-    else if (!part.removed) kept += part.value.length
-  }
+  for (const w of tokens(output)) if (!vocabulary.has(w) && !FUNCTION_WORDS.has(w)) added.set(w, (added.get(w) ?? 0) + 1)
   const score = Math.round((kept / written.length) * 100)
   const verdict =
     score >= 85 ? 'Unmistakably you' : score >= 70 ? 'Sounds like you' : score >= 50 ? 'Partly rewritten' : 'Heavily rewritten'
@@ -116,7 +125,7 @@ export interface DiffPart {
 
 /** Word-level changes from what was said to what was written, ignoring case. */
 export function changes(transcript: string, output: string): DiffPart[] {
-  return diffWords(transcript.replace(/\s+/g, ' ').trim(), stripMarkdown(output).replace(/\s+/g, ' ').trim(), { ignoreCase: true }).map(
+  return diffWords(transcript.replace(/\s+/g, ' ').trim(), stripMarkdown(output, { upperHeadings: false }).replace(/\s+/g, ' ').trim(), { ignoreCase: true }).map(
     (p) => ({ value: p.value, added: p.added, removed: p.removed }),
   )
 }

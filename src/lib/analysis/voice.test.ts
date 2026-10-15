@@ -15,8 +15,11 @@ describe('voiceMatch', () => {
     expect(m.newWords).not.toContain('me')
   })
 
-  it('ignores markdown syntax', () => {
-    expect(voiceMatch('hello there friend', '## Hello\n\n**there** friend').score).toBe(100)
+  it('ignores markdown syntax, headings and TL;DR lines when scoring', () => {
+    expect(voiceMatch('hello there friend', '**hello** there friend').score).toBe(100)
+    const m = voiceMatch('I hate typing so I talk instead', '## Typing Is Over\n\n> **TL;DR:** talk instead\n\nI hate typing so I talk instead.')
+    expect(m.score).toBe(100)
+    expect(m.newWords).toEqual(['over'])
   })
 })
 

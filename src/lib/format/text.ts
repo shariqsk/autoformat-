@@ -91,13 +91,13 @@ export function truncate(text: string, max: number): string {
 }
 
 /** Convert Markdown into readable plain text (headings, emphasis, links and code fences flattened). */
-export function stripMarkdown(md: string): string {
+export function stripMarkdown(md: string, { upperHeadings = true } = {}): string {
   return md
     .replace(/```[^\n]*\n([\s\S]*?)```/g, '$1')
     .replace(/`([^`]+)`/g, '$1')
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-    .replace(/^#{1,6}\s+(.*)$/gm, (_, h: string) => h.toUpperCase())
+    .replace(/^#{1,6}\s+(.*)$/gm, (_, h: string) => (upperHeadings ? h.toUpperCase() : h))
     .replace(/^>\s?/gm, '')
     .replace(/^\s*[-*+]\s+/gm, '• ')
     .replace(/(\*\*|__)(.*?)\1/g, '$2')
