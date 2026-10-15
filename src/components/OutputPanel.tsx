@@ -1,8 +1,10 @@
 import DOMPurify from 'dompurify'
-import { Check, Clipboard, Download, FileText } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Check, Copy, Download, Eraser, Feather } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { downloadText, useCopy } from '../hooks/useCopy'
+import { changes, findAiIsms, fixAiIsms, readability, voiceMatch } from '../lib/analysis/voice'
 import {
+  escapeHtml,
   EXPORT_FORMATS,
   exportFilename,
   exportFormatById,
@@ -13,12 +15,12 @@ import {
   type ExportFormatId,
 } from '../lib/export/formats'
 import { stripMarkdown, wordCount } from '../lib/format/text'
-import type { FormattedDoc } from '../lib/format/types'
+import type { FormattedDoc, LayoutId } from '../lib/format/types'
 import type { LoadProgress } from '../lib/ml/protocol'
-import { cx, inputClass } from './classes'
-import { Button, Card, ProgressBar } from './ui'
+import { cx } from './classes'
+import { Badge, Button, Kbd, Panel, ProgressBar } from './ui'
 
-type View = 'preview' | 'edit' | ExportFormatId
+type View = 'read' | 'edit' | 'changes' | 'export'
 
 async function copyRich(html: string, plain: string) {
   if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
@@ -33,6 +35,360 @@ async function copyRich(html: string, plain: string) {
   }
 }
 
+/** Wrap AI-isms in highlighter marks, skipping fenced code. */
+function highlightAiIsms(markdown: string): string {
+  const fences = [...markdown.matchAll(/```[\s\S]*?```/g)].map((m) => [m.index, m.index + m[0].length])
+  const hits = findAiIsms(markdown).filter((h) => !fences.some(([a, b]) => h.start >= a && h.start < b))
+  let out = markdown
+  for (const h of [...hits].reverse()) {
+    const tip = h.fix === null ? `${h.why}. Worth rewriting in your own words.` : `${h.why}. Try “${h.fix.trim() || 'cutting it'}”.`
+    out = `${out.slice(0, h.start)}<mark class="ai-ism" title="${escapeHtml(tip)}">${out.slice(h.start, h.end)}</mark>${out.slice(h.end)}`
+  }
+  return out
+}
+
+function ScoreRing({ score }: { score: number }) {
+  const r = 15
+  const c = 2 * Math.PI * r
+  const tone = score >= 85 ? 'stroke-olive' : score >= 60 ? 'stroke-ink' : 'stroke-accent'
+  return (
+    <svg viewBox="0 0 36 36" className="size-11 -rotate-90" aria-hidden>
+      <circle cx="18" cy="18" r={r} className="fill-none stroke-rule" strokeWidth="3" />
+      <circle
+        cx="18"
+        cy="18"
+        r={r}
+        className={cx('fill-none transition-[stroke-dashoffset] duration-700', tone)}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - score / 100)}
+      />
+    </svg>
+  )
+}
+
+function VoiceReport({ transcript, doc, onFix }: { transcript: string; doc: FormattedDoc; onFix: () => void }) {
+  const report = useMemo(() => {
+    const full = `${doc.title}\n\n${doc.body}`
+    return { match: voiceMatch(transcript, full), tells: findAiIsms(doc.body), read: readability(doc.body) }
+  }, [transcript, doc])
+  const fixable = report.tells.filter((t) => t.fix !== null).length
+
+  return (
+    <div className="grid gap-px overflow-hidden rounded-xl border border-rule bg-rule sm:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="flex items-center gap-3 bg-paper/70 px-4 py-3">
+        <div className="relative">
+          <ScoreRing score={report.match.score} />
+          <span className="absolute inset-0 grid place-items-center font-mono text-[11px] font-semibold tabular-nums">{report.match.score}</span>
+        </div>
+        <div className="min-w-0">
+          <p className="small-caps text-ink-3">Sounds like you</p>
+          <p className="font-display text-xl leading-tight">{report.match.verdict}</p>
+          {report.match.newWords.length > 0 && (
+            <p className="truncate text-[11px] text-ink-3" title={report.match.newWords.join(', ')}>
+              New words: {report.match.newWords.slice(0, 5).join(', ')}
+              {report.match.newWords.length > 5 && '…'}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="bg-paper/70 px-4 py-3">
+        <p className="small-caps text-ink-3">AI tells</p>
+        <p className="font-display text-xl leading-tight">{report.tells.length === 0 ? 'None found' : `${report.tells.length} flagged`}</p>
+        {fixable > 0 ? (
+          <button type="button" onClick={onFix} className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-accent-deep hover:underline">
+            <Eraser className="size-3" /> Fix {fixable} automatically
+          </button>
+        ) : (
+          <p className="text-[11px] text-ink-3">{report.tells.length ? 'Highlighted below' : 'Reads human'}</p>
+        )}
+      </div>
+      <div className="bg-paper/70 px-4 py-3">
+        <p className="small-caps text-ink-3">Reading level</p>
+        <p className="font-display text-xl leading-tight">{report.read.grade ? `Grade ${report.read.grade}` : '–'}</p>
+        <p className="text-[11px] text-ink-3">
+          {report.read.label} · ~{report.read.avgSentenceWords} words/sentence
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function ThreadView({ body }: { body: string }) {
+  const { copied, copy } = useCopy()
+  const posts = body.split(/\n{2,}/).filter((p) => p.trim())
+  return (
+    <ol className="space-y-3">
+      {posts.map((post, i) => {
+        const text = stripMarkdown(post)
+        const over = text.length > 280
+        return (
+          <li key={i} className="group relative rounded-2xl border border-rule bg-paper/60 p-4 pr-12">
+            <p className="font-serif text-[16px] leading-relaxed whitespace-pre-wrap text-ink">{text}</p>
+            <p className={cx('mt-2 font-mono text-[11px] tabular-nums', over ? 'text-accent-deep' : 'text-ink-3')}>{text.length}/280</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => copy(text, `post-${i}`)}
+              className="absolute top-3 right-3 size-8 px-0"
+              aria-label={`Copy post ${i + 1}`}
+            >
+              {copied === `post-${i}` ? <Check className="size-4 text-olive" /> : <Copy className="size-4" />}
+            </Button>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+function ChangesView({ transcript, doc }: { transcript: string; doc: FormattedDoc }) {
+  const parts = useMemo(() => changes(transcript, doc.body), [transcript, doc.body])
+  const removed = parts.filter((p) => p.removed).reduce((n, p) => n + wordCount(p.value), 0)
+  const added = parts.filter((p) => p.added).reduce((n, p) => n + wordCount(p.value), 0)
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-ink-3">
+        <Badge tone="accent">
+          <del>{removed} words cut</del>
+        </Badge>
+        <Badge tone="olive">{added} words added</Badge>
+        <span>From what you said to what's on the page.</span>
+      </div>
+      <p className="font-serif text-[16px] leading-[1.9] text-ink-2">
+        {parts.map((p, i) =>
+          p.removed ? (
+            <del key={i} className="bg-accent-wash/60 text-ink-3 decoration-accent/60">
+              {p.value}
+            </del>
+          ) : p.added ? (
+            <ins key={i} className="rounded-sm bg-olive-wash text-olive no-underline">
+              {p.value}
+            </ins>
+          ) : (
+            <span key={i}>{p.value}</span>
+          ),
+        )}
+      </p>
+    </div>
+  )
+}
+
+function EmptyPage() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+      <Feather className="mb-5 size-8 text-rule-strong" strokeWidth={1.25} />
+      <p className="font-display text-4xl leading-tight text-ink">A blank page, waiting.</p>
+      <p className="mt-3 max-w-sm text-sm leading-relaxed text-ink-3">
+        Talk about anything. When you're done, hit <span className="text-ink-2">Format it</span> and your words show up here: cleaned up, laid out,
+        and still sounding like you.
+      </p>
+      <div className="mt-8 grid gap-2 text-left text-xs text-ink-3">
+        {[
+          ['R', 'Start or stop recording'],
+          ['⌘ ↵', 'Format the transcript'],
+          ['⌘ ⇧ C', 'Copy the result'],
+          ['?', 'All shortcuts'],
+        ].map(([key, label]) => (
+          <p key={key} className="flex items-center gap-3">
+            <span className="w-14 text-right">
+              <Kbd>{key}</Kbd>
+            </span>
+            {label}
+          </p>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function OutputPanel({
+  doc,
+  onDocChange,
+  ctx,
+  transcript,
+  layout,
+  formatting,
+  loading,
+  copyRef,
+}: {
+  doc: FormattedDoc | null
+  onDocChange: (doc: FormattedDoc) => void
+  ctx: ExportContext
+  transcript: string
+  layout: LayoutId
+  formatting: boolean
+  loading: LoadProgress | null | undefined
+  copyRef?: { current: (() => void) | null }
+}) {
+  const [view, setView] = useState<View>('read')
+  const [format, setFormat] = useState<ExportFormatId>('markdown')
+  const { copied, copy } = useCopy()
+
+  const html = useMemo(() => (doc ? DOMPurify.sanitize(toHtmlFragment({ ...doc, title: '', body: formatting ? doc.body : highlightAiIsms(doc.body) })) : ''), [doc, formatting])
+  const exportFormat = exportFormatById(format)
+  const exported = useMemo(() => (doc && view === 'export' ? exportFormat.render(doc, ctx) : ''), [doc, ctx, view, exportFormat])
+
+  async function handleCopy() {
+    if (!doc) return
+    if (view === 'export') return copy(exported, 'main')
+    if (view === 'edit') return copy(doc.body, 'main')
+    // Rich copy pastes with formatting intact into Google Docs, Notion, Medium, WordPress…
+    return copy(() => copyRich(toHtmlFragment(doc), toPlainText(doc)), 'main')
+  }
+  // Expose copy to the global ⌘⇧C shortcut with the current view's semantics.
+  useEffect(() => {
+    if (copyRef) copyRef.current = doc ? () => void handleCopy() : null
+  })
+
+  function handleDownload() {
+    if (!doc) return
+    const f = view === 'export' ? exportFormat : exportFormatById('markdown')
+    downloadText(exportFilename(doc, f), view === 'export' ? exported : f.render(doc, ctx), f.mime)
+  }
+
+  const tabs: { id: View; label: string }[] = [
+    { id: 'read', label: 'Read' },
+    { id: 'edit', label: 'Edit' },
+    { id: 'changes', label: 'Changes' },
+    { id: 'export', label: 'Export' },
+  ]
+
+  return (
+    <Panel
+      number="03"
+      title="Page"
+      className="flex min-h-[40rem] flex-col"
+      aside={
+        doc && (
+          <span className="hidden font-mono text-[11px] text-ink-3 tabular-nums sm:inline">
+            {wordCount(stripMarkdown(doc.body))} words · {readingMinutes(doc)} min
+          </span>
+        )
+      }
+    >
+      {!doc ? (
+        <EmptyPage />
+      ) : (
+        <div className="flex flex-1 flex-col gap-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="tablist" aria-label="Page view" className="flex gap-1">
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === t.id}
+                  onClick={() => setView(t.id)}
+                  className={cx(
+                    'relative px-2.5 py-1.5 text-[13px] font-medium transition-colors',
+                    view === t.id ? 'text-ink' : 'text-ink-3 hover:text-ink-2',
+                  )}
+                >
+                  {t.label}
+                  {view === t.id && <span className="absolute inset-x-2.5 -bottom-0.5 h-0.5 rounded bg-accent" />}
+                </button>
+              ))}
+            </div>
+            <div className="ml-auto flex gap-1.5">
+              <Button size="sm" onClick={handleCopy} disabled={formatting}>
+                {copied === 'main' ? <Check className="size-3.5 text-olive" /> : <Copy className="size-3.5" />}
+                {copied === 'main' ? 'Copied' : 'Copy'}
+              </Button>
+              <Button size="sm" variant="ink" onClick={handleDownload} disabled={formatting}>
+                <Download className="size-3.5" /> {view === 'export' ? `.${exportFormat.extension}` : 'Download'}
+              </Button>
+            </div>
+          </div>
+
+          {formatting && (
+            <div className="space-y-1.5" aria-live="polite">
+              <ProgressBar value={loading?.fraction ?? null} />
+              <p className="text-[11px] text-ink-3">
+                {loading
+                  ? `Downloading the editor model${loading.totalBytes ? ` · ${Math.round(loading.loadedBytes / 1e6)} of ${Math.round(loading.totalBytes / 1e6)} MB` : ''}. One time only.`
+                  : 'Writing it up…'}
+              </p>
+            </div>
+          )}
+
+          {!formatting && view !== 'export' && <VoiceReport transcript={transcript} doc={doc} onFix={() => onDocChange({ ...doc, body: fixAiIsms(doc.body) })} />}
+
+          {view === 'read' && (
+            <article className="animate-rise">
+              <header className="mb-6 border-b border-rule pb-5">
+                <textarea
+                  value={doc.title}
+                  onChange={(e) => onDocChange({ ...doc, title: e.target.value.replace(/\n/g, ' ') })}
+                  placeholder="Untitled"
+                  aria-label="Title"
+                  rows={1}
+                  className="field-sizing-content w-full resize-none bg-transparent font-display text-[2.6rem] leading-[1.05] tracking-tight text-ink placeholder:text-rule-strong focus:outline-none"
+                />
+                <textarea
+                  value={doc.description}
+                  onChange={(e) => onDocChange({ ...doc, description: e.target.value.replace(/\n/g, ' ') })}
+                  placeholder="A one-line description for previews and search"
+                  aria-label="Description"
+                  rows={1}
+                  className="field-sizing-content mt-2 w-full resize-none bg-transparent font-serif text-lg text-ink-2 italic placeholder:text-rule-strong focus:outline-none"
+                />
+                <TagsInput tags={doc.tags} onChange={(tags) => onDocChange({ ...doc, tags })} />
+              </header>
+              {layout === 'thread' ? (
+                <ThreadView body={doc.body} />
+              ) : (
+                <div className="prose prose-desk max-w-none" dangerouslySetInnerHTML={{ __html: html }} />
+              )}
+              {formatting && <span className="ml-0.5 inline-block h-5 w-0.5 animate-blink bg-accent align-middle" />}
+            </article>
+          )}
+
+          {view === 'edit' && (
+            <textarea
+              value={doc.body}
+              onChange={(e) => onDocChange({ ...doc, body: e.target.value })}
+              className="min-h-[32rem] flex-1 resize-y rounded-xl border border-rule bg-paper/50 p-4 font-mono text-[13px] leading-relaxed text-ink-2 focus:border-ink-3 focus:outline-none"
+              aria-label="Markdown body"
+            />
+          )}
+
+          {view === 'changes' && <ChangesView transcript={transcript} doc={doc} />}
+
+          {view === 'export' && (
+            <div className="flex flex-1 flex-col gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {EXPORT_FORMATS.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setFormat(f.id)}
+                    aria-pressed={format === f.id}
+                    className={cx(
+                      'rounded-xl border px-3 py-2.5 text-left transition-colors',
+                      format === f.id ? 'border-ink bg-paper shadow-lift' : 'border-rule hover:border-rule-strong hover:bg-paper/60',
+                    )}
+                  >
+                    <span className="flex items-center justify-between text-[13px] font-medium text-ink">
+                      {f.label}
+                      <span className="font-mono text-[10px] text-ink-3">.{f.extension}</span>
+                    </span>
+                    <span className="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-ink-3">{f.hint}</span>
+                  </button>
+                ))}
+              </div>
+              <pre className="max-h-[34rem] flex-1 overflow-auto rounded-xl border border-rule bg-well p-4 font-mono text-[12px] leading-relaxed break-words whitespace-pre-wrap text-ink-2">
+                {exported}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+    </Panel>
+  )
+}
+
 function TagsInput({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
   const [draft, setDraft] = useState<string | null>(null)
   const commit = (value: string) => {
@@ -44,170 +400,29 @@ function TagsInput({ tags, onChange }: { tags: string[]; onChange: (tags: string
     )
     setDraft(null)
   }
+  if (draft === null)
+    return (
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        {tags.map((t) => (
+          <span key={t} className="rounded-full bg-well px-2.5 py-0.5 font-mono text-[11px] text-ink-2">
+            #{t}
+          </span>
+        ))}
+        <button type="button" onClick={() => setDraft(tags.join(', '))} className="px-1 text-[11px] text-ink-3 hover:text-ink">
+          {tags.length ? 'edit tags' : '+ add tags'}
+        </button>
+      </div>
+    )
   return (
     <input
-      value={draft ?? tags.join(', ')}
+      autoFocus
+      value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={(e) => commit(e.target.value)}
       onKeyDown={(e) => e.key === 'Enter' && commit(e.currentTarget.value)}
       placeholder="tags, comma separated"
-      className={cx(inputClass, 'py-1.5 text-xs')}
       aria-label="Tags"
+      className="mt-3 w-full rounded-lg border border-rule bg-paper px-3 py-1.5 font-mono text-xs text-ink focus:border-ink-3 focus:outline-none"
     />
-  )
-}
-
-export function OutputPanel({
-  doc,
-  onDocChange,
-  ctx,
-  formatting,
-  loading,
-}: {
-  doc: FormattedDoc | null
-  onDocChange: (doc: FormattedDoc) => void
-  ctx: ExportContext
-  formatting: boolean
-  loading: LoadProgress | null | undefined
-}) {
-  const [view, setView] = useState<View>('preview')
-  const { copied, copy } = useCopy()
-
-  const html = useMemo(() => (doc ? DOMPurify.sanitize(toHtmlFragment({ ...doc, title: '' })) : ''), [doc])
-  const exported = useMemo(() => {
-    if (!doc || view === 'preview' || view === 'edit') return null
-    const format = exportFormatById(view)
-    return { format, text: format.render(doc, ctx) }
-  }, [doc, ctx, view])
-
-  const words = doc ? wordCount(stripMarkdown(doc.body)) : 0
-
-  async function handleCopy() {
-    if (!doc) return
-    if (exported) return copy(exported.text, view)
-    if (view === 'edit') return copy(doc.body, view)
-    // Rich copy pastes with formatting intact into Google Docs, Notion, Medium, WordPress…
-    return copy(() => copyRich(toHtmlFragment(doc), toPlainText(doc)), view)
-  }
-
-  function handleDownload() {
-    if (!doc) return
-    const format = exported?.format ?? exportFormatById('markdown')
-    downloadText(exportFilename(doc, format), exported?.text ?? format.render(doc, ctx), format.mime)
-  }
-
-  const tabs: { id: View; label: string; hint?: string }[] = [
-    { id: 'preview', label: 'Preview' },
-    { id: 'edit', label: 'Edit' },
-    ...EXPORT_FORMATS.map((f) => ({ id: f.id, label: f.label, hint: f.hint })),
-  ]
-
-  return (
-    <Card
-      step={3}
-      title="Ship it"
-      subtitle={doc ? `${words} words · ${readingMinutes(doc)} min read` : 'Copy, export, or hand it to your blog agent.'}
-      className="flex min-h-[32rem] flex-col"
-      actions={
-        doc && (
-          <>
-            <Button size="sm" onClick={handleCopy} disabled={formatting}>
-              {copied === view ? <Check className="size-4 text-emerald-400" /> : <Clipboard className="size-4" />}
-              {copied === view ? 'Copied' : 'Copy'}
-            </Button>
-            <Button size="sm" onClick={handleDownload} disabled={formatting} title={exported ? `Download .${exported.format.extension}` : 'Download Markdown'}>
-              <Download className="size-4" /> Download
-            </Button>
-          </>
-        )
-      }
-    >
-      {formatting && (
-        <div className="mb-4 space-y-2" aria-live="polite">
-          <ProgressBar value={loading?.fraction ?? null} />
-          <p className="text-xs text-zinc-400">
-            {loading
-              ? `Downloading model${loading.totalBytes ? ` · ${Math.round(loading.loadedBytes / 1e6)} / ${Math.round(loading.totalBytes / 1e6)} MB` : ''} — cached after the first time`
-              : 'Writing…'}
-          </p>
-        </div>
-      )}
-
-      {!doc ? (
-        <div className="grid flex-1 place-items-center py-16 text-center">
-          <div className="max-w-xs space-y-3">
-            <FileText className="mx-auto size-10 text-zinc-700" />
-            <p className="text-sm text-zinc-400">Your formatted post shows up here.</p>
-            <p className="text-xs text-zinc-600">Record or paste something, pick a layout, then hit Auto-format.</p>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-1 flex-col gap-4">
-          <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                title={t.hint}
-                onClick={() => setView(t.id)}
-                className={cx(
-                  'shrink-0 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
-                  view === t.id ? 'bg-violet-500/15 text-violet-200 ring-1 ring-violet-500/40' : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-100',
-                  t.id === 'markdown' && 'ml-3',
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          {(view === 'preview' || view === 'edit') && (
-            <div className="space-y-2">
-              <input
-                value={doc.title}
-                onChange={(e) => onDocChange({ ...doc, title: e.target.value })}
-                placeholder="Untitled"
-                aria-label="Title"
-                className="w-full bg-transparent text-2xl font-bold tracking-tight text-white placeholder:text-zinc-700 focus:outline-none"
-              />
-              <input
-                value={doc.description}
-                onChange={(e) => onDocChange({ ...doc, description: e.target.value })}
-                placeholder="One-line description for SEO and previews"
-                aria-label="Description"
-                className="w-full bg-transparent text-sm text-zinc-400 placeholder:text-zinc-700 focus:outline-none"
-              />
-              <TagsInput tags={doc.tags} onChange={(tags) => onDocChange({ ...doc, tags })} />
-            </div>
-          )}
-
-          {view === 'preview' && (
-            <article
-              className="prose prose-invert prose-zinc max-w-none flex-1 prose-headings:tracking-tight prose-a:text-violet-300 prose-blockquote:border-violet-500/60"
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
-          )}
-
-          {view === 'edit' && (
-            <textarea
-              value={doc.body}
-              onChange={(e) => onDocChange({ ...doc, body: e.target.value })}
-              className={cx(inputClass, 'min-h-96 flex-1 resize-y font-mono text-[13px] leading-relaxed')}
-              spellCheck
-              aria-label="Markdown body"
-            />
-          )}
-
-          {exported && (
-            <div className="flex flex-1 flex-col gap-2">
-              <p className="text-xs text-zinc-500">{exported.format.hint}</p>
-              <pre className="max-h-[36rem] flex-1 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-white/10 bg-zinc-950/80 p-4 font-mono text-[12.5px] leading-relaxed text-zinc-300">
-                {exported.text}
-              </pre>
-            </div>
-          )}
-        </div>
-      )}
-    </Card>
   )
 }
