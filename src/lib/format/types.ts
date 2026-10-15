@@ -10,7 +10,8 @@ export type LayoutId =
   | 'notes'
   | 'journal'
 
-export type ToneId = 'verbatim' | 'natural' | 'casual' | 'professional' | 'academic' | 'punchy'
+/** How much of the raw speech survives. Every mode keeps the speaker's voice. */
+export type ToneId = 'verbatim' | 'raw' | 'polished' | 'formal'
 
 export type LengthId = 'concise' | 'balanced' | 'detailed'
 
@@ -36,7 +37,7 @@ export interface FormattedDoc {
 
 export const DEFAULT_OPTIONS: FormatOptions = {
   layout: 'blog',
-  tone: 'natural',
+  tone: 'raw',
   length: 'balanced',
   includeTitle: true,
   includeSummary: false,

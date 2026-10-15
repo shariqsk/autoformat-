@@ -13,7 +13,7 @@ const NOW = new Date('2026-10-15T12:00:00Z')
 
 describe('formatLocally', () => {
   it('produces a titled blog post with tags and description', () => {
-    const doc = formatLocally(TRANSCRIPT, opts(), NOW)
+    const doc = formatLocally(TRANSCRIPT, opts(), { now: NOW })
     expect(doc.title).toBe('Why I Started Using Local AI Models for My Blog')
     expect(doc.tags.length).toBeGreaterThan(0)
     expect(doc.description.length).toBeLessThanOrEqual(160)
@@ -22,45 +22,60 @@ describe('formatLocally', () => {
 
   it('renders every layout without throwing and with non-empty output', () => {
     for (const layout of LAYOUTS) {
-      const doc = formatLocally(TRANSCRIPT, opts({ layout: layout.id }), NOW)
+      const doc = formatLocally(TRANSCRIPT, opts({ layout: layout.id }), { now: NOW })
       expect(doc.body.trim().length, layout.id).toBeGreaterThan(50)
     }
   })
 
   it('turns sequencing words into numbered steps for how-tos', () => {
-    const doc = formatLocally(TRANSCRIPT, opts({ layout: 'howto' }), NOW)
+    const doc = formatLocally(TRANSCRIPT, opts({ layout: 'howto' }), { now: NOW })
     expect(doc.body).toContain('## Steps')
     expect(doc.body).toMatch(/1\. You download the model\./)
     expect(doc.body).toMatch(/2\. You hit record\./)
   })
 
   it('uses spoken questions as Q&A headings', () => {
-    const doc = formatLocally(TRANSCRIPT, opts({ layout: 'qa' }), NOW)
+    const doc = formatLocally(TRANSCRIPT, opts({ layout: 'qa' }), { now: NOW })
     expect(doc.body).toContain("### What's the catch?")
   })
 
   it('keeps thread posts within the character limit', () => {
-    const doc = formatLocally(TRANSCRIPT.repeat(3), opts({ layout: 'thread' }), NOW)
+    const doc = formatLocally(TRANSCRIPT.repeat(3), opts({ layout: 'thread' }), { now: NOW })
     const posts = doc.body.split('\n\n')
     expect(posts.length).toBeGreaterThan(1)
     for (const post of posts) expect(post.length).toBeLessThanOrEqual(280)
     expect(posts[0]).toMatch(/^1\/\d+ /)
   })
 
-  it('formalises slang in professional tone', () => {
-    const doc = formatLocally(TRANSCRIPT, opts({ tone: 'professional' }), NOW)
+  it('swaps slang in formal mode but keeps contractions and sentences', () => {
+    const doc = formatLocally(TRANSCRIPT, opts({ tone: 'formal' }), { now: NOW })
     expect(doc.body).not.toMatch(/\b(bro|lol|kinda|bucks)\b/i)
+    expect(doc.body).toContain("I used to pay twenty dollars a month")
+    expect(doc.body).toMatch(/\b(?:isn't|they've)\b/)
+  })
+
+  it('keeps slang and jokes in no-filter mode', () => {
+    const doc = formatLocally(TRANSCRIPT, opts({ tone: 'raw' }), { now: NOW })
+    expect(doc.body).toMatch(/\bbro\b/i)
+    expect(doc.body).toMatch(/\blol\b/)
+    expect(doc.body).not.toMatch(/\bum\b/)
+  })
+
+  it('never touches protected words', () => {
+    const doc = formatLocally(TRANSCRIPT, opts({ tone: 'formal' }), { now: NOW, keepWords: ['bro', 'kinda'] })
+    expect(doc.body).toMatch(/\bbro\b/i)
+    expect(doc.body).toMatch(/\bkinda\b/)
   })
 
   it('respects title, tag and summary toggles', () => {
-    const doc = formatLocally(TRANSCRIPT, opts({ includeTitle: false, includeTags: false, includeSummary: true }), NOW)
+    const doc = formatLocally(TRANSCRIPT, opts({ includeTitle: false, includeTags: false, includeSummary: true }), { now: NOW })
     expect(doc.title).toBe('')
     expect(doc.tags).toEqual([])
     expect(doc.body.startsWith('> **TL;DR:**')).toBe(true)
   })
 
   it('handles empty input', () => {
-    expect(formatLocally('', opts(), NOW).body).toBe('')
+    expect(formatLocally('', opts(), { now: NOW }).body).toBe('')
   })
 })
 

@@ -28,7 +28,7 @@ const FILLER_SOUNDS: Rule[] = [
   [/\b(\w+)(?:,?\s+\1\b)+/gi, '$1'],
 ]
 
-// Verbal tics: removed from "my voice" upwards.
+// Verbal tics: removed from "No filter" upwards. This is flow repair, not rewriting.
 const VERBAL_TICS: Rule[] = [
   [/(^|[.!?]\s+)(?:(?:okay|ok|alright|right|yeah|well),|(?:so|okay|yeah) (?:yeah|so),?)\s+(?=\w)/gi, '$1'],
   [/,?\s*\b(?:so yeah|and yeah|yeah so|but yeah)\b[,.]?/gi, '.'],
@@ -37,28 +37,34 @@ const VERBAL_TICS: Rule[] = [
   [/,\s*like,/gi, ','],
   [/(^|[.!?]\s+)like,\s*/gi, '$1'],
   [/\blike,?\s+(?=like\b)/gi, ''],
-  [/\b(yeah|so|and|but|okay|it's|was|is)\s+like,?\s+/gi, '$1 '],
+  [/\b(yeah|so|and|but|okay|it's|was|is)\s+like,?\s+(?!(?:a|an|the|this|that|me|him|her|them|us|it)\b)/gi, '$1 '],
   [/\blike,?\s+(?=(?:honestly|literally|really|totally|just|basically|actually|so|um|uh)\b)/gi, ''],
-  [/\b(?:basically|literally),?\s+/gi, ''],
+  [/\b(?:basically|literally),\s+/gi, ''],
   [/,\s*like,?\s+(?=(?:I|I'm|I'll|I've|we|you|it|they|he|she)\b)/g, ', '],
-  [/,?\s*\b(?:or something(?: like that)?|or whatever|and stuff like that|and all that)\b/gi, ''],
+  [/,?\s*\b(?:or something like that|or whatever|and stuff like that|and all that)\b/gi, ''],
 ]
 
-// Slang and casual register: swapped out for professional tones and above.
-const SLANG: Rule[] = [
-  [/(^|[.!?]\s+)(?:yeah|yep|yup|yo)\b,?\s*/gi, '$1'],
-  [/(^|[,.!?]\s*|\b(?:yeah|yo|okay|ok|nah|no|like|man)\s+)(?:bro|bruh|dude|fam|homie)\b,?\s*/gi, '$1'],
-  [/,?\s*\b(?:bro|bruh|dude|fam|homie|man)\b(?=\s*(?:[,.!?]|$))/gi, ''],
+// Crude bits that read badly on a page: removed from "Polished" upwards.
+const CRUDE: Rule[] = [
   [/\b(?:lol|lmao|lmfao|rofl|haha+|hehe+)\b[,.!]?\s*/gi, ''],
   [/\b(?:freaking|frickin|fricking|effing|fucking|friggin)\s+/gi, ''],
   [/\bholy (?:shit|crap)\b/gi, 'wow'],
   [/\b(?:damn|dang)\s+(?=\w)/gi, ''],
+  swap('shit', 'stuff'),
+]
+
+// "Formal": a handful of word swaps. Sentence structure, contractions and opinions stay put so the
+// result still sounds like the speaker, just in a blazer.
+const SLANG: Rule[] = [
+  [/(^|[.!?]\s+)(?:yeah|yep|yup|yo)\b,?\s*/gi, '$1'],
+  [/(^|[,.!?]\s*|\b(?:yeah|yo|okay|ok|nah|no|like|man)\s+)(?:bro|bruh|dude|fam|homie)\b,?\s*/gi, '$1'],
+  [/,?\s*\b(?:bro|bruh|dude|fam|homie|man)\b(?=\s*(?:[,.!?]|$))/gi, ''],
   swap('gonna', 'going to'),
   swap('wanna', 'want to'),
   swap('gotta', 'have to'),
   [/\b(?:kinda|sorta)\s+(?=just\b|like\b)/gi, ''],
-  swap('kinda', 'somewhat'),
-  swap('sorta', 'somewhat'),
+  swap('kinda', 'a bit'),
+  swap('sorta', 'a bit'),
   swap('gimme', 'give me'),
   swap('lemme', 'let me'),
   swap("y'all", 'you all'),
@@ -74,69 +80,59 @@ const SLANG: Rule[] = [
   swap('yep', 'yes'),
   swap('yup', 'yes'),
   swap('nah', 'no'),
-  swap('nope', 'no'),
   swap('dope', 'great'),
-  swap('insane', 'remarkable'),
-  swap('pretty much', 'essentially'),
-  swap('a bunch of', 'several'),
-  swap('a ton of', 'a lot of'),
-  swap('tons of', 'many'),
-  swap('this stuff', 'this'),
-  swap('that stuff', 'that'),
-  swap('stuff', 'things'),
+  swap('a bunch of', 'a lot of'),
   swap('bucks', 'dollars'),
-  swap('crazy', 'remarkable'),
-  swap('shit', 'things'),
-  [/\bsuper (?=\w)/gi, (m) => matchCase(m, 'very ')],
-  [/\b(?:and stuff|and things)\b/gi, ''],
+  [/\bsuper (?=\w)/gi, (m) => matchCase(m, 'really ')],
   [/\bwas like,?\s*/gi, (m) => matchCase(m, 'said, ')],
-]
-
-const CONTRACTIONS: Record<string, string> = {
-  "can't": 'cannot',
-  "won't": 'will not',
-  "shan't": 'shall not',
-  "let's": 'let us',
-  "i'm": 'I am',
-  "it's": 'it is',
-  "that's": 'that is',
-  "there's": 'there is',
-  "what's": 'what is',
-  "here's": 'here is',
-  "who's": 'who is',
-}
-
-// Academic register: no contractions.
-const FORMAL: Rule[] = [
-  [/\b(\w+)n't\b/gi, (m, stem: string) => CONTRACTIONS[m.toLowerCase()] ? matchCase(m, CONTRACTIONS[m.toLowerCase()]) : `${stem} not`],
-  [/\b(?:i'm|it's|that's|there's|what's|here's|who's|let's)\b/gi, (m) => matchCase(m, CONTRACTIONS[m.toLowerCase()])],
-  [/\b(\w+)'re\b/gi, '$1 are'],
-  [/\b(\w+)'ve\b/gi, '$1 have'],
-  [/\b(\w+)'ll\b/gi, '$1 will'],
-  [/\b(I|you|we|they|he|she)'d\b/gi, '$1 would'],
-  swap('really', ''),
-  swap('awesome', 'excellent'),
-  swap('huge', 'significant'),
-  swap('a lot of', 'considerable'),
 ]
 
 function applyRules(text: string, rules: Rule[]): string {
   return rules.reduce((acc, [re, rep]) => acc.replace(re, rep as never), text)
 }
 
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * Hide words the speaker wants kept (their catchphrases, "bro", a brand name that looks like slang)
+ * behind placeholders so no rule can touch them, and return a function that puts them back.
+ */
+function protect(text: string, keep: string[]): [string, (s: string) => string] {
+  const words = keep.map((w) => w.trim()).filter(Boolean)
+  if (!words.length) return [text, (s) => s]
+  const saved: string[] = []
+  const re = new RegExp(`(?<!\\w)(?:${words.map(escapeRe).join('|')})(?!\\w)`, 'gi')
+  const masked = text.replace(re, (m) => `\uE000${saved.push(m) - 1}\uE001`)
+  return [masked, (s) => s.replace(/\uE000(\d+)\uE001/g, (_, i: string) => saved[Number(i)])]
+}
+
+export interface Replacement {
+  from: string
+  to: string
+}
+
+/** Apply the user's dictionary of fixes (e.g. "clawed" → "Claude"), matching whole words case-insensitively. */
+export function applyReplacements(text: string, replacements: Replacement[]): string {
+  return replacements
+    .filter((r) => r.from.trim())
+    // Lookarounds instead of \b so entries like "c++" or "node.js" match too.
+    .reduce((acc, r) => acc.replace(new RegExp(`(?<!\\w)${escapeRe(r.from.trim())}(?!\\w)`, 'gi'), r.to), text)
+}
+
 /** Remove disfluencies and adjust register according to strictness. Returns a single string. */
-export function scrub(raw: string, strictness: Strictness): string {
+export function scrub(raw: string, strictness: Strictness, keep: string[] = []): string {
   let text = raw
     .replace(/[‘’]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/\[(?:BLANK_AUDIO|MUSIC|NOISE|INAUDIBLE|silence)\]|\((?:music|laughs|silence|inaudible)\)/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-  text = applyRules(text, FILLER_SOUNDS)
+  const [masked, restore] = protect(text, keep)
+  text = applyRules(masked, FILLER_SOUNDS)
   if (strictness >= 1) text = applyRules(text, VERBAL_TICS)
-  if (strictness >= 2) text = applyRules(text, SLANG)
-  if (strictness >= 3) text = applyRules(text, FORMAL)
-  return tidyPunctuation(text)
+  if (strictness >= 2) text = applyRules(text, CRUDE)
+  if (strictness >= 3) text = applyRules(text, SLANG)
+  return restore(tidyPunctuation(text))
 }
 
 function tidyPunctuation(text: string): string {
@@ -231,7 +227,7 @@ const LEADING_TICS: Record<Strictness, RegExp | null> = {
   0: null,
   1: /^(?:so|yeah|like|okay|ok|well|anyway|anyways|alright)\b,?\s+(?=\w)/i,
   2: /^(?:so|yeah|like|okay|ok|well|anyway|anyways|alright|and so|but yeah)\b,?\s+(?=\w)/i,
-  3: /^(?:so|yeah|like|okay|ok|well|anyway|anyways|alright|and|and so|plus)\b,?\s+(?=\w)/i,
+  3: /^(?:so|yeah|like|okay|ok|well|anyway|anyways|alright|and so|but yeah)\b,?\s+(?=\w)/i,
 }
 
 export function stripLeadingTics(sentence: string, strictness: Strictness): string | null {
@@ -281,12 +277,12 @@ export function toParagraphs(sentences: string[], targetWords = 70): string[][] 
 }
 
 /** Full offline cleanup pipeline: raw transcript in, paragraphs of polished sentences out. */
-export function cleanTranscript(raw: string, strictness: Strictness): string[][] {
+export function cleanTranscript(raw: string, strictness: Strictness, keep: string[] = []): string[][] {
   // Respect paragraph breaks the user typed or pasted.
   const blocks = raw.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean)
   const result: string[][] = []
   for (const block of blocks) {
-    const scrubbed = insertSentenceBreaks(scrub(block, strictness))
+    const scrubbed = insertSentenceBreaks(scrub(block, strictness, keep))
     const sentences = splitSentences(scrubbed)
       .map((s) => polishSentence(s, strictness))
       .filter((s): s is string => s !== null)

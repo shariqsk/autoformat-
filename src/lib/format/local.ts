@@ -231,9 +231,13 @@ function renderLayout(layout: LayoutId, paragraphs: Paragraphs, corpus: string, 
   }
 }
 
-export function formatLocally(transcript: string, options: FormatOptions, now = new Date()): FormattedDoc {
+export function formatLocally(
+  transcript: string,
+  options: FormatOptions,
+  { now = new Date(), keepWords = [] }: { now?: Date; keepWords?: string[] } = {},
+): FormattedDoc {
   const tone = toneById(options.tone)
-  let paragraphs = cleanTranscript(transcript, tone.strictness)
+  let paragraphs = cleanTranscript(transcript, tone.strictness, keepWords)
   if (!paragraphs.length) return { title: '', description: '', tags: [], body: '' }
 
   // "Concise" keeps only the most informative sentences of each paragraph.

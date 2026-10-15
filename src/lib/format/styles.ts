@@ -13,8 +13,10 @@ export interface ToneDef {
   id: ToneId
   label: string
   blurb: string
+  /** Shown in the picker so people can see what each mode does to a sentence. */
+  example: string
   guide: string
-  /** 0 = keep every word, 3 = full formal rewrite. Drives the offline cleaner. */
+  /** 0 = keep every word, 3 = a few formal word swaps. Drives the offline cleaner. */
   strictness: 0 | 1 | 2 | 3
 }
 
@@ -31,7 +33,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '📝',
     blurb: 'Hook intro, H2 sections, clean wrap-up.',
     guide:
-      'A classic blog post. Open with a short hook paragraph that sets up the topic. Group the ideas into 2–5 sections, each with a descriptive "##" heading. Use short paragraphs (2–4 sentences). Finish with a brief conclusion or takeaway section.',
+      'A classic blog post. Open with the speaker\'s own opening as the intro. Group what they said into sections with "##" headings (use as many as the material naturally has, often 2–4). Short paragraphs. End where the speaker ended; don\'t add a conclusion they didn\'t give.',
   },
   {
     id: 'listicle',
@@ -39,7 +41,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '🔢',
     blurb: 'Numbered takeaways with mini headings.',
     guide:
-      'A listicle. One-paragraph intro, then each distinct idea becomes a numbered "### 1. Heading" item with 1–3 sentences of explanation. End with a one-paragraph wrap-up.',
+      'A listicle. A short intro from the speaker\'s opening, then each distinct point they made becomes a numbered "### 1. Heading" item followed by their explanation. Only add a wrap-up if they gave one.',
   },
   {
     id: 'howto',
@@ -47,7 +49,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '🛠️',
     blurb: 'Intro, prerequisites, numbered steps.',
     guide:
-      'A step-by-step tutorial. Start with what the reader will achieve. Add a "## What you need" bullet list only if the speaker mentions prerequisites. Then "## Steps" as a numbered list where each step starts with an imperative verb. Close with "## Tips" or "## Wrapping up" if there is material for it.',
+      'A step-by-step tutorial. Start with the speaker\'s own framing of what this is for. Add "## What you need" only if they mention prerequisites. Then "## Steps" as a numbered list in the order they described. Add "## Tips" only for advice they actually gave.',
   },
   {
     id: 'essay',
@@ -55,7 +57,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '🖋️',
     blurb: 'Flowing prose, no headings.',
     guide:
-      'A flowing personal essay. No headings and no lists. Well-structured paragraphs with clear transitions, a strong opening line and a reflective closing paragraph.',
+      'A flowing personal essay. No headings and no lists. Well-formed paragraphs in the order the speaker said things; transitions only where they are needed to make sense.',
   },
   {
     id: 'newsletter',
@@ -63,7 +65,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '💌',
     blurb: 'Friendly greeting, sections, sign-off.',
     guide:
-      'An email newsletter issue. Start with a short friendly greeting line, then a one-paragraph overview, then sections with "##" headings. End with a warm sign-off line.',
+      'An email newsletter issue. A short greeting in the speaker\'s own style, then their content in sections with "##" headings, then a one-line sign-off in their style.',
   },
   {
     id: 'qa',
@@ -79,7 +81,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '🧵',
     blurb: 'Numbered posts, each under 280 chars.',
     guide:
-      'A social media thread. Split into numbered posts ("1/", "2/", …), each a separate paragraph of at most 280 characters. The first post must be a hook. No headings.',
+      'A social media thread. Split into numbered posts ("1/", "2/", …), each a separate paragraph of at most 280 characters. Lead with the speaker\'s most gripping line. No headings.',
   },
   {
     id: 'linkedin',
@@ -87,7 +89,7 @@ export const LAYOUTS: LayoutDef[] = [
     emoji: '💼',
     blurb: 'Hook line, airy one-liners, hashtags.',
     guide:
-      'A LinkedIn post. Strong one-line hook, then short one- or two-sentence paragraphs separated by blank lines. Optionally a short bullet list of lessons. End with a question to the reader, then 3–5 hashtags on the last line.',
+      'A LinkedIn post. The speaker\'s strongest line first as the hook, then short one- or two-sentence paragraphs separated by blank lines. If they asked the audience something, end with it. 3–5 hashtags on the last line.',
   },
   {
     id: 'notes',
@@ -110,64 +112,56 @@ export const LAYOUTS: LayoutDef[] = [
 export const TONES: ToneDef[] = [
   {
     id: 'verbatim',
-    label: 'Verbatim',
-    blurb: 'Only fix punctuation & ums.',
+    label: 'Word for word',
+    blurb: 'Every word you said. Just punctuation, paragraphs and the ums gone.',
     strictness: 0,
+    example: "Yeah bro, honestly it's kinda crazy how good it's gotten, lol.",
     guide:
-      'Keep the speaker\'s exact words. Only add punctuation, capitalisation and paragraph breaks, and remove pure filler sounds (um, uh, er). Do not rephrase anything.',
+      'Do not change, add, reorder or remove any words except pure filler sounds (um, uh, er) and stuttered repeats. Only add punctuation, capitalisation and paragraph breaks.',
   },
   {
-    id: 'natural',
-    label: 'My voice',
-    blurb: 'Sounds like me, minus the rambling.',
+    id: 'raw',
+    label: 'No filter',
+    blurb: 'Still 100% you. Slang, jokes and swearing stay; only the stumbles go.',
     strictness: 1,
+    example: "Bro, honestly it's kinda crazy how good it's gotten, lol.",
     guide:
-      'Keep the speaker\'s personality, vocabulary and humour, but remove verbal tics, false starts and repetition so it reads like they wrote it on a good day.',
+      'Fix the flow only: remove false starts, repeated words, verbal tics ("you know", "like", "I mean", "so yeah") and turn run-ons into sentences. Keep every word choice, slang term, swear word, joke and aside. Do not swap words for "better" ones.',
   },
   {
-    id: 'casual',
-    label: 'Casual',
-    blurb: 'Friendly and relaxed, slang trimmed.',
-    strictness: 1,
-    guide:
-      'Friendly, conversational and relaxed. Contractions are welcome. Light slang is fine but tone down anything crude or overly bro-ish.',
-  },
-  {
-    id: 'professional',
-    label: 'Professional',
-    blurb: 'Clear, confident, no slang.',
+    id: 'polished',
+    label: 'Polished',
+    blurb: 'You on a good day. Tighter, cleaner, nothing crude.',
     strictness: 2,
+    example: "Bro, honestly it's kinda crazy how good it's gotten.",
     guide:
-      'Clear, confident and professional. Replace slang and crude language with neutral equivalents, avoid hedging words, keep sentences direct. Suitable for a company blog.',
+      'Everything in "fix the flow", plus: tighten rambling passages by cutting repetition, and drop crude bits ("lol", "fucking", "holy shit") where they add nothing. Keep the speaker\'s vocabulary, contractions, humour and rhythm. Do not rephrase sentences that already work.',
   },
   {
-    id: 'academic',
-    label: 'Academic',
-    blurb: 'Formal, precise, no contractions.',
+    id: 'formal',
+    label: 'Formal',
+    blurb: 'You in a blazer. A few words swapped, same person talking.',
     strictness: 3,
+    example: "Honestly, it's a bit crazy how good it's gotten.",
     guide:
-      'Formal and precise. No contractions, no slang, no rhetorical exclamations. Prefer exact terminology and measured claims.',
-  },
-  {
-    id: 'punchy',
-    label: 'Punchy',
-    blurb: 'Short, bold, high energy.',
-    strictness: 2,
-    guide:
-      'Punchy and energetic. Short sentences. Strong verbs. Vary rhythm. Cut every word that does not earn its place. No slang that would read as sloppy.',
+      'Everything in "polished", plus: swap slang and crude words for neutral equivalents ("gonna" → "going to", "kinda" → "a bit", drop "bro"/"dude"). Keep contractions, first person, opinions, sentence structure and personality. This should read like the same person writing for work, not like a corporate press release.',
   },
 ]
 
+/** Older drafts used different tone ids; map them onto the current voice modes. */
+export function normalizeToneId(id: string): ToneId {
+  if (TONES.some((t) => t.id === id)) return id as ToneId
+  if (id === 'professional' || id === 'punchy') return 'polished'
+  if (id === 'academic') return 'formal'
+  return 'raw'
+}
+
 export const LENGTHS: LengthDef[] = [
-  { id: 'concise', label: 'Concise', guide: 'Tighten aggressively: aim for roughly half the length of the transcript.' },
-  { id: 'balanced', label: 'Balanced', guide: 'Keep all the substance but cut repetition: usually 70–90% of the transcript length.' },
-  {
-    id: 'detailed',
-    label: 'Detailed',
-    guide: 'Keep every point and example the speaker made. Smooth transitions are allowed, but do not invent new facts.',
-  },
+  { id: 'concise', label: 'Tight', guide: 'Cut tangents, asides and repetition, aiming for roughly half the length. What remains should still be the speaker\'s own sentences.' },
+  { id: 'balanced', label: 'Balanced', guide: 'Keep everything of substance; remove only noise and repetition.' },
+  { id: 'detailed', label: 'Everything', guide: 'Keep every point, aside and example the speaker made, in their order.' },
 ]
 
 export const layoutById = (id: LayoutId): LayoutDef => LAYOUTS.find((l) => l.id === id) ?? LAYOUTS[0]
-export const toneById = (id: ToneId): ToneDef => TONES.find((t) => t.id === id) ?? TONES[1]
+export const toneById = (id: ToneId | string): ToneDef => TONES.find((t) => t.id === normalizeToneId(id)) ?? TONES[1]
 export const lengthById = (id: LengthId): LengthDef => LENGTHS.find((l) => l.id === id) ?? LENGTHS[1]

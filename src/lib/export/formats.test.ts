@@ -8,7 +8,7 @@ const doc: FormattedDoc = {
   tags: ['voice', 'writing'],
   body: 'I hate typing.\n\n## The fix\n\n- Talk\n- **Format**\n\n> quote',
 }
-const ctx = { createdAt: new Date('2026-10-15T09:00:00Z'), layout: 'blog' as const, tone: 'natural' as const }
+const ctx = { createdAt: new Date('2026-10-15T09:00:00Z'), layout: 'blog' as const, tone: 'raw' as const }
 
 describe('exporters', () => {
   it('writes markdown with escaped YAML front matter', () => {

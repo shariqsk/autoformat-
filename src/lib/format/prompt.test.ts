@@ -4,9 +4,9 @@ import { DEFAULT_OPTIONS } from './types'
 
 describe('buildPrompt', () => {
   it('embeds layout, tone and transcript', () => {
-    const { system, user } = buildPrompt('  hello world  ', { ...DEFAULT_OPTIONS, layout: 'listicle', tone: 'academic' })
+    const { system, user } = buildPrompt('  hello world  ', { ...DEFAULT_OPTIONS, layout: 'listicle', tone: 'formal' })
     expect(system).toContain('Layout — Listicle')
-    expect(system).toContain('Tone — Academic')
+    expect(system).toContain('Editing level — Formal')
     expect(user).toContain('<transcript>\nhello world\n</transcript>')
   })
 
@@ -46,5 +46,22 @@ describe('targetWords', () => {
     expect(targetWords(t, { ...DEFAULT_OPTIONS, length: 'concise' })).toBe(100)
     expect(targetWords(t, { ...DEFAULT_OPTIONS, length: 'detailed' })).toBe(200)
     expect(targetWords('hi', DEFAULT_OPTIONS)).toBe(40)
+  })
+})
+
+describe('voice profile in prompts', () => {
+  it('includes protected words, samples and the AI-ism ban list', () => {
+    const { system } = buildPrompt('x', DEFAULT_OPTIONS, {
+      profile: { keepWords: ['bro', 'lowkey'], replacements: [], samples: 'I write short. Like this.' },
+    })
+    expect(system).toContain('Always keep these words exactly as spoken: bro, lowkey.')
+    expect(system).toContain('<writing_samples>\nI write short. Like this.\n</writing_samples>')
+    expect(system).toContain('delve')
+  })
+
+  it('omits empty profile sections', () => {
+    const { system } = buildPrompt('x', DEFAULT_OPTIONS)
+    expect(system).not.toContain('writing_samples')
+    expect(system).not.toContain('Always keep these words')
   })
 })
