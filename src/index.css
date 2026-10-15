@@ -207,7 +207,11 @@ mark.ai-ism {
   color: inherit;
   background: linear-gradient(104deg, transparent 0.4em, var(--marker) 0.5em, var(--marker) 96%, transparent 100%);
   border-radius: 0.2em;
+  /* Bleed the stroke past the word without shifting the surrounding text. */
   padding: 0 0.15em;
+  margin: 0 -0.15em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   cursor: help;
 }
 

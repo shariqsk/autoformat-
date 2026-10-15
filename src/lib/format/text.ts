@@ -13,7 +13,7 @@ const STOPWORDS = new Set(
   theirs them themselves then there these they thing things think this those though thought through to today too
   totally took toward try trying um uh under until up upon us use used using very want wanna wants was wasn way we
   well went were weren what whatever when where whether which while who whole whom why will with within without won
-  would wouldn yeah yes yet you your yours yourself yourselves talk talking essentially honestly remarkable somewhat started start gotten able bucks dollars five ten twenty hundred thousand three four catch wow`
+  would wouldn yeah yes yet you your yours yourself yourselves talk talking essentially honestly remarkable somewhat started start gotten able bucks dollars five ten twenty hundred thousand three four catch wow furthermore moreover sentence sentences minute minutes thing`
     .split(/\s+/)
     .filter(Boolean),
 )
