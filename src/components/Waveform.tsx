@@ -34,7 +34,7 @@ export function Waveform({ analyser, paused, className }: { analyser: AnalyserNo
         analyser.getFloatTimeDomainData(buf)
         let sum = 0
         for (const v of buf) sum += v * v
-        const level = Math.min(1, Math.sqrt(sum / buf.length) * 7)
+        const level = Math.min(1, Math.sqrt(sum / buf.length) * 4.5)
         levels.current.push(level)
         if (levels.current.length > slots) levels.current.splice(0, levels.current.length - slots)
       }
